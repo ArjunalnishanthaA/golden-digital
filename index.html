@@ -1,1 +1,2090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Golden Distributors ERP | Freelan Enterprises</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f6f4ee;
+      color: #162219;
+    }
+
+    .brand-green {
+      background-color: #13311c;
+    }
+
+    .brand-gold {
+      background-color: #e8b339;
+    }
+
+    .card-surface {
+      background-color: #ffffff;
+      border: 1px solid #e6e2d6;
+    }
+
+    .route-dot {
+      display: inline-block;
+      width: 11px;
+      height: 11px;
+      border-radius: 9999px;
+      flex-shrink: 0;
+      border: 1px solid rgba(0, 0, 0, 0.25);
+      vertical-align: middle;
+    }
+
+    .invoice-sheet {
+      position: relative;
+      background: #ffffff;
+      width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .invoice-sheet img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .qr-top-right {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #ffffff;
+      border: 2px solid #000000;
+      padding: 6px;
+      z-index: 20;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .qr-caption {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 10px;
+      font-weight: 800;
+      color: #000000;
+      margin-top: 3px;
+      line-height: 1.1;
+    }
+
+    @media print {
+      @page {
+        margin: 6mm;
+      }
+      body * {
+        visibility: hidden;
+      }
+      #print-stage,
+      #print-stage * {
+        visibility: visible;
+      }
+      #print-stage {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+        background: #ffffff;
+        color: #000000;
+      }
+      .invoice-sheet {
+        page-break-after: always;
+        break-after: page;
+        max-width: 100% !important;
+      }
+      .invoice-sheet:last-child {
+        page-break-after: auto;
+        break-after: auto;
+      }
+      .qr-top-right {
+        top: 6mm;
+        right: 6mm;
+        box-shadow: none;
+      }
+      .dispatch-report-sheet {
+        font-family: 'Courier New', Courier, monospace;
+        color: #000000;
+        background: #ffffff;
+        padding: 4mm;
+      }
+      .dispatch-report-sheet table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+      }
+      .dispatch-report-sheet th,
+      .dispatch-report-sheet td {
+        border: 1px solid #000000;
+        padding: 5px 6px;
+        text-align: left;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="pb-24">
+
+  <!-- TERRITORY / AGENCY LOGIN GATE -->
+  <div id="agency-gate" class="fixed inset-0 brand-green z-50 flex items-center justify-center p-4 no-print">
+    <div class="bg-white text-[#162219] rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl">
+      <div class="text-center space-y-1">
+        <div class="mx-auto brand-gold text-[#13311c] font-extrabold w-12 h-12 rounded-2xl flex items-center justify-center text-2xl">G</div>
+        <h1 class="text-xl font-extrabold text-[#13311c]">Golden Distributors ERP</h1>
+        <p class="text-xs text-stone-500">Select Territory Login to Lock Data & Credit Operations</p>
+      </div>
+
+      <div class="space-y-3">
+        <button onclick="loginTerritory('Anuradhapura')" class="w-full text-left p-4 rounded-2xl border-2 border-[#13311c] bg-[#f6f4ee] hover:bg-emerald-50 transition flex items-center justify-between">
+          <div>
+            <div class="font-extrabold text-base text-[#13311c]">Anuradhapura Agency</div>
+            <div class="text-xs text-stone-600">Mon–Sat Routes · Rep: Mr. Kapila · Cash: Mr. Saman</div>
+          </div>
+          <span class="brand-green text-white text-xs font-bold px-3 py-1.5 rounded-xl">Login →</span>
+        </button>
+
+        <button onclick="loginTerritory('Mihintale')" class="w-full text-left p-4 rounded-2xl border-2 border-amber-600 bg-amber-50/50 hover:bg-amber-50 transition flex items-center justify-between">
+          <div>
+            <div class="font-extrabold text-base text-[#13311c]">Mihintale Agency</div>
+            <div class="text-xs text-stone-600">Mon–Sat Routes · Rep: Mr. Sugath · Cash: Mr. Nisal</div>
+          </div>
+          <span class="brand-gold text-[#13311c] text-xs font-extrabold px-3 py-1.5 rounded-xl">Login →</span>
+        </button>
+      </div>
+
+      <p class="text-[11px] text-center text-stone-500">
+        Anuradhapura bills cannot be uploaded in Mihintale login, and Mihintale bills cannot be uploaded in Anuradhapura login.
+      </p>
+    </div>
+  </div>
+
+  <!-- Top Header -->
+  <header class="brand-green text-white px-4 py-3 sticky top-0 z-30 shadow-md flex items-center justify-between no-print">
+    <div class="flex items-center gap-3">
+      <div class="brand-gold text-[#13311c] font-extrabold w-9 h-9 rounded-lg flex items-center justify-center text-lg">G</div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 id="header-agency-title" class="font-bold text-base leading-tight">Golden Distributors</h1>
+          <span id="header-agency-badge" class="brand-gold text-[#13311c] text-[10px] font-extrabold px-2 py-0.5 rounded-full">LOCKED</span>
+        </div>
+        <p id="header-agency-sub" class="text-[11px] text-emerald-200">Freelan Enterprises</p>
+      </div>
+    </div>
+    <button onclick="openAgencySwitcher()" class="bg-[#1e462a] hover:bg-[#275936] border border-emerald-600 px-3 py-1.5 rounded-full text-xs font-bold">
+      ⇄ Switch Agency
+    </button>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-4xl mx-auto p-4 space-y-4 no-print">
+
+    <!-- TAB 1: DASHBOARD -->
+    <section id="tab-dashboard" class="space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 id="dash-heading" class="text-xl font-extrabold text-[#13311c]">Agency Dashboard</h2>
+          <p id="dash-subheading" class="text-xs text-stone-500">Showing active territory data only</p>
+        </div>
+        <button onclick="switchTab('credit')" class="brand-gold text-[#13311c] font-bold text-xs px-3 py-2 rounded-lg shadow">
+          📷 QR Scan / Credit
+        </button>
+      </div>
+
+      <div class="brand-green text-white rounded-2xl p-5 shadow-md">
+        <div id="dash-credit-label" class="text-[11px] uppercase tracking-wider text-emerald-200 font-semibold">Active Territory Outstanding Credit</div>
+        <div id="dash-total-credit" class="text-3xl font-extrabold mt-1">Rs. 0</div>
+        <div id="dash-open-bills" class="text-xs text-emerald-200 mt-1">0 open bills · routes</div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="card-surface rounded-2xl p-4">
+          <div class="text-[11px] font-bold text-stone-500 uppercase">Collected Today</div>
+          <div id="dash-collected-today" class="text-xl font-extrabold text-emerald-800 mt-1">Rs. 0</div>
+          <div class="text-[11px] text-stone-500 mt-1">This Territory Only</div>
+        </div>
+        <div class="card-surface rounded-2xl p-4">
+          <div class="text-[11px] font-bold text-stone-500 uppercase">Billed Today</div>
+          <div id="dash-billed-today" class="text-xl font-extrabold text-[#13311c] mt-1">Rs. 0</div>
+          <div id="dash-billed-count" class="text-[11px] text-stone-500 mt-1">0 bills</div>
+        </div>
+      </div>
+
+      <div class="card-surface rounded-2xl p-4 space-y-2">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-sm text-[#13311c]">Agency Backup (JSON)</h3>
+            <p class="text-[11px] text-stone-500">Export or restore full database backup</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="exportData()" class="bg-[#13311c] text-white text-xs font-semibold px-3 py-1.5 rounded-lg">Export</button>
+            <label class="bg-stone-200 text-stone-800 text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer">
+              Import <input type="file" accept=".json" onchange="importData(event)" class="hidden" />
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: SFA PDF + TOP-RIGHT QR PRINT -->
+    <section id="tab-bills" class="hidden space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 id="sfa-heading" class="text-xl font-extrabold text-[#13311c]">SFA Invoice + Page-1 QR</h2>
+          <p id="sfa-subheading" class="text-xs text-stone-500">QR appears on Page 1 of each bill only (no duplicate QR on page 2, 3, 4)</p>
+        </div>
+        <button onclick="switchTab('credit')" class="brand-gold text-[#13311c] font-bold text-xs px-3 py-2 rounded-lg">
+          Credit Tab →
+        </button>
+      </div>
+
+      <div class="card-surface rounded-2xl p-4 space-y-3 border-2 border-dashed border-[#13311c]/40">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <h3 class="font-bold text-sm text-[#13311c]">📄 Upload Freelan SFA / Direct Sales PDF</h3>
+            <p id="pdf-upload-hint" class="text-[11px] text-stone-500">QR only on Page 1 of each bill (Page 2, 3, 4 get NO QR)</p>
+          </div>
+          <label class="brand-green text-white text-xs font-bold px-3 py-2.5 rounded-xl cursor-pointer shrink-0">
+            Upload PDF
+            <input id="sfa-pdf-input" type="file" accept="application/pdf" onchange="handleSfaPdf(event)" class="hidden" />
+          </label>
+        </div>
+
+        <div id="pdf-progress" class="text-xs font-semibold text-[#13311c] hidden"></div>
+
+        <div id="pdf-controls" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-stone-200">
+          <div>
+            <label class="text-[11px] font-semibold text-stone-600">QR Size (LQ-310 Friendly)</label>
+            <select id="qr-size-select" onchange="rerenderAllPageQRs()" class="w-full mt-1 p-2 rounded-lg border border-stone-300 text-xs bg-white">
+              <option value="128">Standard (128px)</option>
+              <option value="148" selected>LQ-310 Large Dots (148px)</option>
+              <option value="172">Extra Large (172px)</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-stone-600">Route (Active Territory Only)</label>
+            <div class="flex items-center gap-2 mt-1">
+              <span id="pdf-route-dot" class="route-dot"></span>
+              <select id="pdf-route-select" onchange="syncRouteColorDots()" class="w-full p-2 rounded-lg border border-stone-300 text-xs bg-white"></select>
+            </div>
+          </div>
+          <div class="flex items-end">
+            <button onclick="printAllRenderedPages()" class="w-full brand-gold text-[#13311c] font-bold py-2 px-3 rounded-lg text-xs">
+              🖨️ Print All Pages
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="sfa-pages-container" class="space-y-4"></div>
+    </section>
+
+    <!-- TAB 3: CREDIT (QR SCANNER, RE-EDITABLE PAYMENTS, CANCEL & RETURN) -->
+    <section id="tab-credit" class="hidden space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 id="credit-heading" class="text-xl font-extrabold text-[#13311c]">Credit Control & QR Scanner</h2>
+          <p id="credit-subheading" class="text-xs text-stone-500">Only active territory bills & QR codes can be scanned or settled here</p>
+        </div>
+      </div>
+
+      <!-- Icon Legend -->
+      <div class="card-surface rounded-xl px-3.5 py-2.5 flex flex-wrap items-center gap-3 text-[11px]">
+        <span class="font-bold text-[#13311c]">Icons:</span>
+        <span>🚫 <strong>Full Cancel</strong></span>
+        <span>⚠️ <strong>Partial Cancel</strong></span>
+        <span>📦 <strong>Expire Return</strong></span>
+        <span>💥 <strong>Damage Return</strong></span>
+        <span>🏭 <strong>Production Fault</strong></span>
+      </div>
+
+      <!-- Scanned Sheet / Dispatch Summary & Print Controls -->
+      <div class="card-surface rounded-2xl p-4 space-y-3 border-2 border-[#13311c]/25">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 class="font-extrabold text-sm text-[#13311c]">📋 Today's Scanned Bills Sheet (Print & Evening Check)</h3>
+            <p id="scanned-sheet-count" class="text-[11px] text-stone-600">0 bill(s) scanned today</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="printScannedDispatchSheet()" class="brand-gold text-[#13311c] font-extrabold text-xs px-3.5 py-2 rounded-xl shadow">
+              🖨️ Print Scanned Sheet
+            </button>
+            <button onclick="clearTodayScannedList()" class="bg-stone-200 text-stone-800 font-bold text-xs px-3 py-2 rounded-xl">
+              Clear Sheet
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <div>
+            <label class="text-[11px] font-semibold text-stone-600">Sheet Route (Color Coded)</label>
+            <div class="flex items-center gap-2 mt-1">
+              <span id="sheet-route-dot" class="route-dot"></span>
+              <select id="sheet-route-select" onchange="syncRouteColorDots()" class="w-full p-2 rounded-lg border border-stone-300 text-xs bg-white"></select>
+            </div>
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-stone-600">Rep / Cash Collector (Sheet Header)</label>
+            <select id="sheet-staff-select" class="w-full mt-1 p-2 rounded-lg border border-stone-300 text-xs bg-white"></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- QR Scanner Box -->
+      <div class="card-surface rounded-2xl p-4 space-y-3 border-2 border-[#13311c]/20">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h3 class="font-extrabold text-sm text-[#13311c]">📷 QR Bill Scanner (Bills, Cancels & Returns)</h3>
+          <div class="flex gap-2">
+            <button onclick="startCameraScan()" class="brand-green text-white text-xs font-bold px-3 py-1.5 rounded-lg">Start Camera</button>
+            <button onclick="stopCameraScan()" class="bg-stone-200 text-stone-800 text-xs font-bold px-3 py-1.5 rounded-lg">Stop</button>
+            <label class="brand-gold text-[#13311c] text-xs font-bold px-3 py-1.5 rounded-lg cursor-pointer">
+              Scan Photo
+              <input type="file" accept="image/*" capture="environment" onchange="scanQrImageFile(event)" class="hidden" />
+            </label>
+          </div>
+        </div>
+
+        <div id="qr-scanner-status" class="text-xs text-stone-600">Tap "Start Camera" to scan QR, or select/type a bill from the active territory.</div>
+        <div id="qr-reader" class="w-full max-w-sm mx-auto rounded-xl overflow-hidden bg-black"></div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+          <select id="quick-bill-select" onchange="openBillSettlement(this.value)" class="p-2.5 rounded-xl border border-stone-300 text-xs bg-white">
+            <option value="">-- Select Bill in Active Territory --</option>
+          </select>
+          <div class="flex gap-2">
+            <input id="manual-qr-code" type="text" placeholder="Enter QR / Bill ID (e.g. AN-1001)" class="flex-1 p-2.5 rounded-xl border border-stone-300 text-xs bg-white" />
+            <button onclick="openBillSettlement(document.getElementById('manual-qr-code').value.trim())" class="bg-[#13311c] text-white text-xs font-bold px-3 rounded-xl">Load</button>
+          </div>
+        </div>
+
+        <!-- Scanned / Selected Bill Action Card -->
+        <div id="active-bill-card" class="hidden bg-[#f9f8f4] border-2 border-[#13311c] rounded-2xl p-4 space-y-3">
+          <div class="flex items-start justify-between gap-2">
+            <div class="space-y-0.5">
+              <div id="ab-code" class="font-extrabold text-base text-[#13311c]"></div>
+              <div id="ab-shop-route" class="text-xs font-semibold text-stone-700"></div>
+              <div id="ab-cust-code" class="text-[11px] text-stone-600"></div>
+              <div id="ab-flags" class="flex flex-wrap gap-1.5 pt-1"></div>
+              <div id="ab-status" class="text-[11px] font-bold text-amber-800 pt-0.5"></div>
+            </div>
+            <div class="text-right">
+              <div class="text-[10px] text-stone-500 uppercase">Current Outstanding</div>
+              <div id="ab-balance" class="text-lg font-extrabold text-red-700"></div>
+              <div id="ab-breakdown" class="text-[11px] text-stone-600"></div>
+            </div>
+          </div>
+
+          <!-- Cancel Status & Return Scan/Log Controls -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-stone-200">
+            <div>
+              <label class="text-[11px] font-semibold text-stone-600">Cancel Status (🚫 Full / ⚠️ Partial)</label>
+              <select id="ab-cancel-type" onchange="updateBillCancelType(this.value)" class="w-full mt-1 p-2 rounded-lg border border-stone-300 text-xs bg-white">
+                <option value="NONE">No Cancel</option>
+                <option value="PARTIAL_CANCEL">⚠️ Partial Cancel (Some/1 Item Cancelled)</option>
+                <option value="FULL_CANCEL">🚫 Full Cancel (All Items Cancelled)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[11px] font-semibold text-stone-600">Return Type (📦 Expire / 💥 Damage / 🏭 Fault)</label>
+              <div class="flex gap-1.5 mt-1">
+                <select id="ab-return-type" class="p-2 rounded-lg border border-stone-300 text-xs bg-white">
+                  <option value="NONE">No Return</option>
+                  <option value="EXPIRE">📦 Expire</option>
+                  <option value="DAMAGE">💥 Damage</option>
+                  <option value="PRODUCTION_FAULT">🏭 Production Fault</option>
+                </select>
+                <input id="ab-return-amt" type="number" placeholder="Return Rs." class="w-24 p-2 rounded-lg border border-stone-300 text-xs bg-white" />
+                <button onclick="saveBillReturnDetails()" class="bg-[#13311c] text-white text-xs font-bold px-2.5 rounded-lg shrink-0">
+                  Save Return
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-stone-200">
+            <div>
+              <label class="text-[11px] font-semibold text-stone-600">Assign Rep / Cash Collector</label>
+              <select id="ab-carrier" onchange="updateBillCarrier(this.value)" class="w-full mt-1 p-2 rounded-lg border border-stone-300 text-xs bg-white"></select>
+            </div>
+            <div class="flex items-end">
+              <button onclick="markMorningDispatched()" class="w-full bg-stone-800 text-white text-xs font-bold py-2 px-3 rounded-lg">
+                ✓ Mark Morning Dispatched
+              </button>
+            </div>
+          </div>
+
+          <!-- Freely Re-Editable Payment Controls -->
+          <div class="space-y-2 pt-2 border-t border-stone-200">
+            <label class="text-xs font-bold text-[#13311c] block">Evening / Return Payment Entry (Can Change Anytime):</label>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <button onclick="settleFullAmount()" class="bg-emerald-700 text-white font-bold py-2.5 px-3 rounded-xl text-xs">
+                ✓ Full Paid (Clear Balance)
+              </button>
+              <div class="flex gap-1.5">
+                <input id="ab-partial-input" type="number" placeholder="Set Paid Rs." class="w-full p-2 rounded-xl border border-stone-300 text-xs bg-white" />
+                <button onclick="settlePartialAmount()" class="brand-gold text-[#13311c] font-bold px-3 rounded-xl text-xs shrink-0">
+                  Set Partial
+                </button>
+              </div>
+              <button onclick="settleZeroPayment()" class="bg-amber-100 text-amber-900 border border-amber-300 font-bold py-2.5 px-3 rounded-xl text-xs">
+                No Payment (Reset Full Due)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Credit Bill (with Cancel & Return Options) -->
+      <div class="card-surface rounded-2xl p-4 space-y-3">
+        <h3 id="add-cr-heading" class="font-bold text-sm text-[#13311c]">+ Add Daily Credit / Return / Cancel Bill</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div class="flex items-center gap-2">
+            <span id="new-cr-route-dot" class="route-dot"></span>
+            <select id="new-cr-route" onchange="syncRouteColorDots()" class="w-full p-2.5 rounded-xl border border-stone-300 text-xs bg-white"></select>
+          </div>
+          <input id="new-cr-shop" type="text" placeholder="Shop Name" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
+          <input id="new-cr-cust-code" type="text" placeholder="Outlet ID / Cust Code (e.g. R187-000082)" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+          <input id="new-cr-amount" type="number" placeholder="Bill Amount (Rs.)" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
+          <select id="new-cr-cancel" class="p-2.5 rounded-xl border border-stone-300 text-xs bg-white">
+            <option value="NONE">No Cancel</option>
+            <option value="PARTIAL_CANCEL">⚠️ Partial Cancel</option>
+            <option value="FULL_CANCEL">🚫 Full Cancel</option>
+          </select>
+          <select id="new-cr-return-type" class="p-2.5 rounded-xl border border-stone-300 text-xs bg-white">
+            <option value="NONE">No Return</option>
+            <option value="EXPIRE">📦 Expire</option>
+            <option value="DAMAGE">💥 Damage</option>
+            <option value="PRODUCTION_FAULT">🏭 Production Fault</option>
+          </select>
+          <input id="new-cr-return-amt" type="number" placeholder="Return Rs. (if any)" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <select id="new-cr-carrier" class="p-2.5 rounded-xl border border-stone-300 text-xs bg-white"></select>
+          <button onclick="addCreditBillManual()" class="brand-green text-white font-bold py-2.5 rounded-xl text-xs">+ Save Bill</button>
+        </div>
+      </div>
+
+      <!-- Route & Shop Credit Breakdown -->
+      <div class="card-surface rounded-2xl p-4 space-y-3">
+        <h3 class="font-extrabold text-sm text-[#13311c]">📊 Route & Shop Credit Breakdown (Active Territory)</h3>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] font-semibold text-stone-600">Select Route (Color Coded)</label>
+            <div class="flex items-center gap-2 mt-1">
+              <span id="filter-route-dot" class="route-dot"></span>
+              <select id="filter-route" onchange="syncRouteColorDots(); renderCreditExplorer();" class="w-full p-2.5 rounded-xl border border-stone-300 text-xs bg-white"></select>
+            </div>
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-stone-600">Search Shop Name or Outlet ID</label>
+            <input id="filter-shop-search" type="text" oninput="renderCreditExplorer()" placeholder="Type shop name or code..." class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-xs bg-white" />
+          </div>
+        </div>
+
+        <div id="credit-scope-summary" class="brand-green text-white rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5">
+            <span id="scope-route-dot" class="route-dot" style="width:14px;height:14px;"></span>
+            <div>
+              <div id="scope-title" class="text-xs font-bold text-emerald-200">Selected Route Credit</div>
+              <div id="scope-meta" class="text-[11px] text-emerald-100">0 open bills · 0 shops</div>
+            </div>
+          </div>
+          <div id="scope-total" class="text-xl font-extrabold">Rs. 0</div>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold text-[#13311c] mb-2">Shop Credit Summary (Open Bills & Balance per Shop)</h4>
+          <div id="shop-credit-summary" class="space-y-2"></div>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold text-[#13311c] mb-2">Credit, Cancel & Return Bills in Active Territory</h4>
+          <div id="credit-bills-list" class="space-y-2"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: ROUTES & SHOPS -->
+    <section id="tab-shops" class="hidden space-y-4">
+      <h2 id="shops-heading" class="text-xl font-extrabold text-[#13311c]">Territory Routes & Shops</h2>
+
+      <!-- Import Route Wise Productivity Details PDF -->
+      <div class="card-surface rounded-2xl p-4 space-y-2.5 border-2 border-dashed border-[#13311c]/40">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 class="font-bold text-sm text-[#13311c]">📥 Import Route Wise Productivity Details Report (PDF)</h3>
+            <p class="text-[11px] text-stone-500">Extracts Routes, Outlet IDs, Shop Names & Annual Sales from eVision PDF</p>
+          </div>
+          <label class="brand-green text-white text-xs font-bold px-3.5 py-2 rounded-xl cursor-pointer shrink-0">
+            Import Productivity PDF
+            <input id="productivity-pdf-input" type="file" accept="application/pdf" onchange="handleProductivityPdfImport(event)" class="hidden" />
+          </label>
+        </div>
+        <div id="productivity-import-status" class="text-xs font-semibold text-[#13311c] hidden"></div>
+      </div>
+
+      <div class="card-surface rounded-2xl p-4 space-y-2">
+        <h3 id="route-legend-title" class="font-bold text-sm text-[#13311c]">Route Color Codes</h3>
+        <div id="route-color-legend" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+      </div>
+
+      <div class="card-surface rounded-2xl p-4 space-y-3">
+        <h3 class="font-bold text-sm text-[#13311c]">Register New Shop</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-stone-600">Route (Active Territory Only)</label>
+            <div class="flex items-center gap-2 mt-1">
+              <span id="shop-route-dot" class="route-dot"></span>
+              <select id="shop-route" onchange="syncRouteColorDots()" class="w-full p-2.5 rounded-xl border border-stone-300 text-sm bg-white"></select>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-stone-600">Shop / Outlet Name</label>
+            <input id="shop-name" type="text" placeholder="e.g. Premadasa Stores" class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-sm" />
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-stone-600">Outlet ID / Customer Code</label>
+            <input id="shop-cust-code" type="text" placeholder="e.g. R187-000082" class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-sm" />
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-stone-600">Credit Limit (Rs.)</label>
+            <input id="shop-limit" type="number" value="150000" class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-sm" />
+          </div>
+        </div>
+        <button onclick="addShop()" class="w-full brand-green text-white font-bold py-2.5 rounded-xl text-sm">+ Add Shop</button>
+      </div>
+
+      <div class="card-surface rounded-2xl p-3">
+        <input id="shop-list-search" type="text" oninput="refreshAll()" placeholder="Search imported/registered shops by name, outlet ID, or route..." class="w-full p-2.5 rounded-xl border border-stone-300 text-xs bg-white" />
+      </div>
+
+      <div id="shops-list" class="space-y-2"></div>
+    </section>
+
+    <!-- TAB 5: CHEQUES & PROFIT -->
+    <section id="tab-profit" class="hidden space-y-4">
+      <h2 id="profit-heading" class="text-xl font-extrabold text-[#13311c]">Cheques & Profit</h2>
+      <div class="card-surface rounded-2xl p-4 space-y-3">
+        <h3 class="font-bold text-sm text-[#13311c]">Cheque Register (+94711980085 / +94781980085)</h3>
+        <div class="grid grid-cols-2 gap-2">
+          <input id="chq-shop-name" type="text" placeholder="Shop Name" class="p-2.5 rounded-xl border border-stone-300 text-xs col-span-2" />
+          <input id="chq-number" type="text" placeholder="Cheque No." class="p-2.5 rounded-xl border border-stone-300 text-xs" />
+          <input id="chq-bank" type="text" placeholder="Bank" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
+          <input id="chq-amount" type="number" placeholder="Amount (Rs.)" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
+          <input id="chq-date" type="date" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
+        </div>
+        <button onclick="addCheque()" class="w-full brand-green text-white font-bold py-2.5 rounded-xl text-sm">+ Save Cheque</button>
+        <div id="cheques-list" class="space-y-2 pt-2"></div>
+      </div>
+
+      <div class="card-surface rounded-2xl p-4 space-y-3">
+        <h3 class="font-bold text-sm text-[#13311c]">Monthly Net Profit Estimator</h3>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-stone-600">Gross Sales (Rs.)</label>
+            <input id="prof-sales" type="number" oninput="calcProfit()" class="w-full mt-1 p-2 rounded-xl border border-stone-300 text-sm" />
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-stone-600">Freelan Cost / COGS</label>
+            <input id="prof-cogs" type="number" oninput="calcProfit()" class="w-full mt-1 p-2 rounded-xl border border-stone-300 text-sm" />
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-stone-600">Fuel & Van</label>
+            <input id="prof-fuel" type="number" value="45000" oninput="calcProfit()" class="w-full mt-1 p-2 rounded-xl border border-stone-300 text-sm" />
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-stone-600">Staff & Warehouse</label>
+            <input id="prof-staff" type="number" value="85000" oninput="calcProfit()" class="w-full mt-1 p-2 rounded-xl border border-stone-300 text-sm" />
+          </div>
+        </div>
+        <div class="brand-green text-white rounded-xl p-4 flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase text-emerald-200">Estimated Net Profit</span>
+          <span id="prof-net" class="text-2xl font-extrabold">Rs. 0</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="print-stage" class="hidden"></div>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 px-2 py-2 flex justify-around items-center z-30 no-print">
+    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="text-[#13311c] font-bold flex flex-col items-center text-[11px]">
+      <span class="text-lg">📊</span><span>Dashboard</span>
+    </button>
+    <button onclick="switchTab('bills')" id="nav-bills" class="text-stone-500 flex flex-col items-center text-[11px]">
+      <span class="text-lg">🧾</span><span>SFA + QR</span>
+    </button>
+    <button onclick="switchTab('credit')" id="nav-credit" class="text-stone-500 flex flex-col items-center text-[11px]">
+      <span class="text-lg">💳</span><span>Credit</span>
+    </button>
+    <button onclick="switchTab('shops')" id="nav-shops" class="text-stone-500 flex flex-col items-center text-[11px]">
+      <span class="text-lg">🏪</span><span>Routes</span>
+    </button>
+    <button onclick="switchTab('profit')" id="nav-profit" class="text-stone-500 flex flex-col items-center text-[11px]">
+      <span class="text-lg">🏦</span><span>Cheques/Profit</span>
+    </button>
+  </nav>
+
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    const ROUTE_COLOR_HEX = {
+      Green: "#16a34a",
+      Yellow: "#eab308",
+      Pink: "#ec4899",
+      Blue: "#2563eb",
+      Black: "#111827",
+      Red: "#dc2626"
+    };
+
+    const COLOR_CYCLE = ["Green", "Yellow", "Pink", "Blue", "Black", "Red"];
+
+    const TERRITORY_ROUTES = {
+      Anuradhapura: [
+        { label: "RAA001: 3 Mile Post, Thanthirimale", color: "Black" },
+        { label: "RAA002: Pandulagama, Hidogama", color: "Yellow" },
+        { label: "RAA003: Mathale Juntion, Siwalakulam", color: "Pink" },
+        { label: "RAA004: Anuradhapura Town, Pubudu", color: "Green" },
+        { label: "RAA005: Jaffna juntion, Mihinthale", color: "Blue" },
+        { label: "RAA006: Niraviya, Pandulagama", color: "Red" }
+      ],
+      Mihintale: [
+        { label: "RAM001: Alayapaththuwa, Vilachchiya", color: "Green" },
+        { label: "RAM002: Dahaiyagama, Vijepura, Thuruwila", color: "Yellow" },
+        { label: "RAM003: Mihinthale, Galkulama, Thirappane", color: "Pink" },
+        { label: "RAM004: Jaffna junction, Saliyapura, Rambewa", color: "Blue" },
+        { label: "RAM005: Market side, Airport Road", color: "Black" },
+        { label: "RAM006: Galpalama, Galkadawala", color: "Red" }
+      ]
+    };
+
+    const TERRITORY_STAFF = {
+      Anuradhapura: [
+        "Rep: Mr. Kapila",
+        "Cash Collector: Mr. Saman"
+      ],
+      Mihintale: [
+        "Rep: Mr. Sugath",
+        "Cash Collector: Mr. Nisal"
+      ]
+    };
+
+    function getCancelBadgeHtml(cancelType) {
+      if (cancelType === "FULL_CANCEL") {
+        return `<span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-red-100 text-red-800 border border-red-300">🚫 FULL CANCEL</span>`;
+      }
+      if (cancelType === "PARTIAL_CANCEL") {
+        return `<span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-orange-100 text-orange-900 border border-orange-300">⚠️ PARTIAL CANCEL</span>`;
+      }
+      return "";
+    }
+
+    function getReturnBadgeHtml(returnType, returnAmt) {
+      if (!returnType || returnType === "NONE") return "";
+      const amtText = Number(returnAmt || 0) > 0 ? ` (${fmt(returnAmt)})` : "";
+      if (returnType === "EXPIRE") {
+        return `<span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-purple-100 text-purple-900 border border-purple-300">📦 EXPIRE${amtText}</span>`;
+      }
+      if (returnType === "DAMAGE") {
+        return `<span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-rose-100 text-rose-900 border border-rose-300">💥 DAMAGE${amtText}</span>`;
+      }
+      if (returnType === "PRODUCTION_FAULT") {
+        return `<span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-sky-100 text-sky-900 border border-sky-300">🏭 PROD FAULT${amtText}</span>`;
+      }
+      return "";
+    }
+
+    function buildCompactQrText(terr, billId, amount, cancelType, returnType) {
+      const tCode = terr === "Mihintale" ? "MH" : "AN";
+      const cCode = cancelType === "FULL_CANCEL" ? "F" : (cancelType === "PARTIAL_CANCEL" ? "P" : "0");
+      const rCode = returnType === "EXPIRE" ? "E" : (returnType === "DAMAGE" ? "D" : (returnType === "PRODUCTION_FAULT" ? "PF" : "0"));
+      const cleanId = String(billId || "BILL").replace(/\|/g, "").slice(0, 22);
+      const amtNum = Math.round(Number(amount || 0));
+      return `${tCode}|${cleanId}|${amtNum}|${cCode}|${rCode}`;
+    }
+
+    function parseQrInput(rawInput) {
+      const str = String(rawInput || "").trim();
+      if (!str) return null;
+
+      if (str.includes("|")) {
+        const parts = str.split("|");
+        const tCode = (parts[0] || "").toUpperCase();
+        const territory = tCode === "MH" ? "Mihintale" : (tCode === "AN" ? "Anuradhapura" : null);
+        const id = (parts[1] || "").trim();
+        const amount = Number(parts[2] || 0);
+        const cn = parts[3] === "F" ? "FULL_CANCEL" : (parts[3] === "P" ? "PARTIAL_CANCEL" : "NONE");
+        const rt = parts[4] === "E" ? "EXPIRE" : (parts[4] === "D" ? "DAMAGE" : (parts[4] === "PF" ? "PRODUCTION_FAULT" : "NONE"));
+        return { id, territory, amount, cancelType: cn, returnType: rt };
+      }
+
+      if (str.startsWith("{")) {
+        try {
+          const j = JSON.parse(str);
+          const territory = j.t === "MH" ? "Mihintale" : (j.t === "AN" ? "Anuradhapura" : null);
+          return {
+            id: String(j.id || "").trim(),
+            territory,
+            shopName: j.s || "",
+            custCode: j.c || "",
+            date: j.d || "",
+            amount: Number(j.a || 0),
+            cancelType: j.cn || "NONE",
+            returnType: j.rt || "NONE",
+            returnAmt: Number(j.ra || 0)
+          };
+        } catch (e) {}
+      }
+
+      return { id: str, territory: null };
+    }
+
+    function getRouteColorHex(routeLabel) {
+      if (!routeLabel || routeLabel === "ALL") return "#e8b339";
+      for (const terr of Object.keys(TERRITORY_ROUTES)) {
+        const found = TERRITORY_ROUTES[terr].find(r => r.label === routeLabel);
+        if (found) return ROUTE_COLOR_HEX[found.color] || "#16a34a";
+      }
+      if (routeLabel.includes("(Green)")) return ROUTE_COLOR_HEX.Green;
+      if (routeLabel.includes("(Yellow)")) return ROUTE_COLOR_HEX.Yellow;
+      if (routeLabel.includes("(Pink)")) return ROUTE_COLOR_HEX.Pink;
+      if (routeLabel.includes("(Blue)")) return ROUTE_COLOR_HEX.Blue;
+      if (routeLabel.includes("(Black)")) return ROUTE_COLOR_HEX.Black;
+      if (routeLabel.includes("(Red)")) return ROUTE_COLOR_HEX.Red;
+      return "#16a34a";
+    }
+
+    function setDotColor(elId, routeLabel) {
+      const el = document.getElementById(elId);
+      if (el) el.style.backgroundColor = getRouteColorHex(routeLabel);
+    }
+
+    function syncRouteColorDots() {
+      setDotColor('pdf-route-dot', document.getElementById('pdf-route-select')?.value);
+      setDotColor('sheet-route-dot', document.getElementById('sheet-route-select')?.value);
+      setDotColor('new-cr-route-dot', document.getElementById('new-cr-route')?.value);
+      setDotColor('filter-route-dot', document.getElementById('filter-route')?.value);
+      setDotColor('scope-route-dot', document.getElementById('filter-route')?.value);
+      setDotColor('shop-route-dot', document.getElementById('shop-route')?.value);
+    }
+
+    function daysAgo(n) {
+      const d = new Date();
+      d.setDate(d.getDate() - n);
+      return d.toISOString().split('T')[0];
+    }
+
+    const defaultData = {
+      shops: [
+        { id: "S1", territory: "Anuradhapura", route: TERRITORY_ROUTES.Anuradhapura[3].label, name: "Pubudupura Stores", custCode: "R186-000010", limit: 150000, annualSales: 0 },
+        { id: "S2", territory: "Anuradhapura", route: TERRITORY_ROUTES.Anuradhapura[1].label, name: "Hidogama Trade Mart", custCode: "R186-000025", limit: 120000, annualSales: 0 },
+        { id: "S3", territory: "Mihintale", route: TERRITORY_ROUTES.Mihintale[3].label, name: "Premadasa Stores", custCode: "R187-00008", limit: 200000, annualSales: 0 },
+        { id: "S4", territory: "Mihintale", route: TERRITORY_ROUTES.Mihintale[4].label, name: "G.K.Super", custCode: "CUS25816", limit: 150000, annualSales: 0 }
+      ],
+      bills: [
+        { id: "AN-1001", territory: "Anuradhapura", shopName: "Pubudupura Stores", custCode: "R186-000010", route: TERRITORY_ROUTES.Anuradhapura[3].label, date: daysAgo(2), amount: 8650, paid: 0, cancelType: "PARTIAL_CANCEL", returnType: "EXPIRE", returnAmt: 1200, carrier: "Rep: Mr. Kapila", dispatchedMorning: true, lastAction: "Partial Cancel + Expire Return" },
+        { id: "AN-1002", territory: "Anuradhapura", shopName: "Hidogama Trade Mart", custCode: "R186-000025", route: TERRITORY_ROUTES.Anuradhapura[1].label, date: daysAgo(6), amount: 14500, paid: 4500, cancelType: "NONE", returnType: "DAMAGE", returnAmt: 950, carrier: "Cash Collector: Mr. Saman", dispatchedMorning: true, lastAction: "Partial Paid Rs. 4,500" },
+        { id: "MH-1003", territory: "Mihintale", shopName: "Premadasa Stores", custCode: "R187-00008", route: TERRITORY_ROUTES.Mihintale[3].label, date: daysAgo(1), amount: 42000, paid: 0, cancelType: "FULL_CANCEL", returnType: "NONE", returnAmt: 0, carrier: "Rep: Mr. Sugath", dispatchedMorning: true, lastAction: "Full Cancel Bill" },
+        { id: "MH-1004", territory: "Mihintale", shopName: "G.K.Super", custCode: "CUS25816", route: TERRITORY_ROUTES.Mihintale[4].label, date: daysAgo(4), amount: 28000, paid: 0, cancelType: "NONE", returnType: "PRODUCTION_FAULT", returnAmt: 2300, carrier: "Cash Collector: Mr. Nisal", dispatchedMorning: false, lastAction: "Production Fault Return" }
+      ],
+      cheques: [
+        { id: "C1", territory: "Anuradhapura", shopName: "Pubudupura Stores", number: "458921", bank: "BOC", amount: 24400, date: daysAgo(0), status: "Pending" },
+        { id: "C2", territory: "Mihintale", shopName: "Premadasa Stores", number: "782104", bank: "Commercial Bank", amount: 35000, date: daysAgo(0), status: "Pending" }
+      ],
+      scannedTodayByTerr: {
+        Anuradhapura: [],
+        Mihintale: []
+      }
+    };
+
+    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v10')) || defaultData;
+    if (!db.scannedTodayByTerr) db.scannedTodayByTerr = { Anuradhapura: [], Mihintale: [] };
+
+    let activeTerritory = sessionStorage.getItem('gd_active_territory') || null;
+    let renderedPages = [];
+    let html5QrScanner = null;
+    let currentScannedBillId = null;
+
+    function getCollectedKey() {
+      return `gd_collected_${activeTerritory}_${daysAgo(0)}`;
+    }
+
+    function getCollectedToday() {
+      if (!activeTerritory) return 0;
+      return Number(localStorage.getItem(getCollectedKey()) || 0);
+    }
+
+    function setCollectedToday(val) {
+      if (!activeTerritory) return;
+      localStorage.setItem(getCollectedKey(), String(Math.max(0, Number(val || 0))));
+    }
+
+    function loginTerritory(terr) {
+      activeTerritory = terr;
+      sessionStorage.setItem('gd_active_territory', terr);
+      currentScannedBillId = null;
+      renderedPages = [];
+      document.getElementById('sfa-pages-container').innerHTML = "";
+      document.getElementById('pdf-controls').classList.add('hidden');
+      document.getElementById('pdf-progress').classList.add('hidden');
+      document.getElementById('active-bill-card').classList.add('hidden');
+      document.getElementById('agency-gate').classList.add('hidden');
+      applyTerritoryContext();
+    }
+
+    function openAgencySwitcher() {
+      stopCameraScan();
+      document.getElementById('agency-gate').classList.remove('hidden');
+    }
+
+    function rebuildTerritoryDropdowns() {
+      const routes = TERRITORY_ROUTES[activeTerritory];
+      const staff = TERRITORY_STAFF[activeTerritory];
+
+      const prevPdfRoute = document.getElementById('pdf-route-select')?.value;
+      const prevNewCrRoute = document.getElementById('new-cr-route')?.value;
+      const prevShopRoute = document.getElementById('shop-route')?.value;
+      const prevFilterRoute = document.getElementById('filter-route')?.value;
+      const prevSheetRoute = document.getElementById('sheet-route-select')?.value;
+
+      const routeOpts = routes.map(r => `<option value="${r.label}">${r.label}</option>`).join('');
+      const staffOpts = staff.map(st => `<option value="${st}">${st}</option>`).join('');
+
+      document.getElementById('pdf-route-select').innerHTML = routeOpts;
+      document.getElementById('new-cr-route').innerHTML = routeOpts;
+      document.getElementById('shop-route').innerHTML = routeOpts;
+      document.getElementById('filter-route').innerHTML = `<option value="ALL">All ${routes.length} ${activeTerritory} Routes</option>` + routeOpts;
+      document.getElementById('sheet-route-select').innerHTML = routeOpts;
+      document.getElementById('sheet-staff-select').innerHTML = staffOpts;
+      document.getElementById('new-cr-carrier').innerHTML = staffOpts;
+      document.getElementById('ab-carrier').innerHTML = `<option value="">-- Assign Rep / Cash --</option>` + staffOpts;
+
+      if (prevPdfRoute && routes.some(r => r.label === prevPdfRoute)) document.getElementById('pdf-route-select').value = prevPdfRoute;
+      if (prevNewCrRoute && routes.some(r => r.label === prevNewCrRoute)) document.getElementById('new-cr-route').value = prevNewCrRoute;
+      if (prevShopRoute && routes.some(r => r.label === prevShopRoute)) document.getElementById('shop-route').value = prevShopRoute;
+      if (prevFilterRoute && (prevFilterRoute === "ALL" || routes.some(r => r.label === prevFilterRoute))) document.getElementById('filter-route').value = prevFilterRoute;
+      if (prevSheetRoute && routes.some(r => r.label === prevSheetRoute)) document.getElementById('sheet-route-select').value = prevSheetRoute;
+
+      document.getElementById('route-color-legend').innerHTML = routes.map(r => `
+        <div class="flex items-center gap-2.5 bg-[#f9f8f4] border border-stone-200 rounded-xl px-3 py-2">
+          <span class="route-dot" style="background-color: ${ROUTE_COLOR_HEX[r.color] || '#16a34a'};"></span>
+          <span class="text-xs font-semibold text-[#13311c]">${r.label}</span>
+        </div>
+      `).join('');
+
+      syncRouteColorDots();
+    }
+
+    function applyTerritoryContext() {
+      if (!activeTerritory) {
+        document.getElementById('agency-gate').classList.remove('hidden');
+        return;
+      }
+      document.getElementById('agency-gate').classList.add('hidden');
+
+      const staff = TERRITORY_STAFF[activeTerritory];
+      const otherTerr = activeTerritory === "Anuradhapura" ? "Mihintale" : "Anuradhapura";
+
+      document.getElementById('header-agency-title').innerText = `${activeTerritory} Agency`;
+      document.getElementById('header-agency-badge').innerText = `${activeTerritory.toUpperCase()} LOCK`;
+      document.getElementById('header-agency-sub').innerText = `${staff[0]} · ${staff[1]}`;
+
+      document.getElementById('dash-heading').innerText = `${activeTerritory} Dashboard`;
+      document.getElementById('dash-subheading').innerText = `Strict lock: ${activeTerritory} bills only`;
+      document.getElementById('dash-credit-label').innerText = `${activeTerritory} Outstanding Credit`;
+
+      document.getElementById('sfa-heading').innerText = `${activeTerritory} SFA + Page-1 QR`;
+      document.getElementById('sfa-subheading').innerText = `QR on Page 1 only · ${otherTerr} bills blocked`;
+      document.getElementById('pdf-upload-hint').innerText = `QR only on Page 1 of each bill (Page 2, 3, 4 get NO QR)`;
+
+      document.getElementById('credit-heading').innerText = `${activeTerritory} Credit, Cancel & Return QR`;
+      document.getElementById('credit-subheading').innerText = `${staff[0]} | ${staff[1]} · Editable payments & strict territory lock`;
+      document.getElementById('add-cr-heading').innerText = `+ Add ${activeTerritory} Credit / Return / Cancel Bill`;
+
+      document.getElementById('shops-heading').innerText = `${activeTerritory} Routes & Shops`;
+      document.getElementById('route-legend-title').innerText = `${activeTerritory} Route Color Codes`;
+      document.getElementById('profit-heading').innerText = `${activeTerritory} Cheques & Profit`;
+
+      rebuildTerritoryDropdowns();
+      refreshAll();
+    }
+
+    function saveDB() {
+      localStorage.setItem('gd_strict_agency_v10', JSON.stringify(db));
+      refreshAll();
+    }
+
+    function fmt(num) {
+      return "Rs. " + Number(num || 0).toLocaleString('en-LK');
+    }
+
+    function switchTab(tab) {
+      ['dashboard', 'bills', 'credit', 'shops', 'profit'].forEach(t => {
+        document.getElementById('tab-' + t).classList.add('hidden');
+        document.getElementById('nav-' + t).classList.remove('text-[#13311c]', 'font-bold');
+        document.getElementById('nav-' + t).classList.add('text-stone-500');
+      });
+      document.getElementById('tab-' + tab).classList.remove('hidden');
+      document.getElementById('nav-' + tab).classList.add('text-[#13311c]', 'font-bold');
+      document.getElementById('nav-' + tab).classList.remove('text-stone-500');
+
+      if (tab !== 'credit') stopCameraScan();
+    }
+
+    /* ---------------- ROUTE PRODUCTIVITY PDF IMPORTER ---------------- */
+    function cleanRouteNameText(raw) {
+      return String(raw || "")
+        .replace(/\bCG\d+\b/gi, "")
+        .replace(/Mihinthale\s*-\s*Arjunal\s*Nishantha/gi, "")
+        .replace(/Anuradhapura\s*-\s*Arjunal\s*Nishantha/gi, "")
+        .replace(/\b(Ra|Thira|Thur|Kir)\b$/i, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    async function handleProductivityPdfImport(event) {
+      if (!activeTerritory) return;
+      const inputEl = event.target;
+      const file = inputEl.files[0];
+      if (!file) return;
+
+      const statusEl = document.getElementById('productivity-import-status');
+      statusEl.classList.remove('hidden');
+      statusEl.classList.remove('text-red-700');
+      statusEl.classList.add('text-[#13311c]');
+      statusEl.innerText = `Reading ${file.name} and extracting routes & shops...`;
+
+      try {
+        const buffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+
+        const foundRoutesMap = new Map();
+        const extractedShops = [];
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          statusEl.innerText = `Parsing page ${pageNum} of ${pdf.numPages}...`;
+          const page = await pdf.getPage(pageNum);
+          const content = await page.getTextContent();
+
+          const items = content.items
+            .filter(it => it.str && it.str.trim())
+            .map(it => ({
+              str: it.str.trim(),
+              x: it.transform[4],
+              y: Math.round(it.transform[5] / 4) * 4
+            }));
+
+          const rowsMap = new Map();
+          items.forEach(it => {
+            if (!rowsMap.has(it.y)) rowsMap.set(it.y, []);
+            rowsMap.get(it.y).push(it);
+          });
+
+          const sortedY = Array.from(rowsMap.keys()).sort((a, b) => b - a);
+          sortedY.forEach(y => {
+            const rowItems = rowsMap.get(y).sort((a, b) => a.x - b.x);
+            const rowText = rowItems.map(i => i.str).join(' ');
+
+            if (/Distributor\s*code|Outlet\s*Name|Net\s*Sales\s*Value|eVision\s*Microsystems|Printed\s*on|Page:\s*\d+\/\d+|\bTotal\b|Start\s*Date:/i.test(rowText)) {
+              return;
+            }
+
+            const routeIdMatch = rowText.match(/\b(RA[AM]\d{2,4}|R\d{2,4})\b/i);
+            const outletIdMatch = rowText.match(/\b((?:CUS|R\d{2,3}-)\d{2,8})\b/i);
+            const numMatches = rowText.match(/\b\d{1,3}(?:,\d{3})*\.\d{2}\b/g) || [];
+
+            if (!outletIdMatch && !routeIdMatch) return;
+
+            const salesVal = numMatches.length >= 2
+              ? Number(numMatches[numMatches.length - 2].replace(/,/g, ''))
+              : (numMatches.length === 1 ? Number(numMatches[0].replace(/,/g, '')) : 0);
+
+            const routeId = routeIdMatch ? routeIdMatch[1].toUpperCase() : "R001";
+
+            let routeName = "";
+            const routeNameMatch = rowText.match(/\b(?:RA[AM]\d{2,4}|R\d{2,4})\b\s+(.+?)(?=\s+(?:CUS\d+|R\d{2,3}-\d+)|\s+\d{1,3}(?:,\d{3})*\.\d{2}|$)/i);
+            if (routeNameMatch) {
+              routeName = cleanRouteNameText(routeNameMatch[1]);
+            }
+
+            if (!foundRoutesMap.has(routeId)) {
+              const colorName = COLOR_CYCLE[foundRoutesMap.size % COLOR_CYCLE.length];
+              foundRoutesMap.set(routeId, {
+                routeId,
+                label: routeName ? `${routeId}: ${routeName}` : routeId,
+                color: colorName
+              });
+            }
+
+            if (outletIdMatch) {
+              const custCode = outletIdMatch[1].toUpperCase();
+              let outletName = "";
+              const afterOutlet = rowText.split(outletIdMatch[0])[1] || "";
+              const cleanedAfter = afterOutlet
+                .replace(/\b\d{1,3}(?:,\d{3})*\.\d{2}\b.*$/, '')
+                .replace(/\b\d+(?:\.\d+)?\b/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+              if (cleanedAfter && cleanedAfter.length >= 2) {
+                outletName = cleanedAfter;
+              } else {
+                const beforeOutlet = rowText.split(outletIdMatch[0])[0] || "";
+                const cleanedBefore = beforeOutlet
+                  .replace(/\bCG\d+\b/gi, '')
+                  .replace(/Mihinthale\s*-\s*Arjunal\s*Nishantha|Anuradhapura\s*-\s*Arjunal\s*Nishantha/gi, '')
+                  .replace(/\b(?:RA[AM]\d{2,4}|R\d{2,4})\b/gi, '')
+                  .replace(routeName || '', '')
+                  .replace(/\s+/g, ' ')
+                  .trim();
+                outletName = cleanedBefore || custCode;
+              }
+
+              const routeObj = foundRoutesMap.get(routeId);
+              const routeLabel = routeObj ? routeObj.label : routeId;
+              const suggestedLimit = salesVal > 0 ? Math.max(50000, Math.round((salesVal / 12) / 5000) * 5000) : 150000;
+
+              extractedShops.push({
+                custCode,
+                name: outletName.slice(0, 45),
+                route: routeLabel,
+                limit: suggestedLimit,
+                annualSales: salesVal
+              });
+            }
+          });
+        }
+
+        if (foundRoutesMap.size > 0) {
+          TERRITORY_ROUTES[activeTerritory] = Array.from(foundRoutesMap.values()).sort((a, b) => a.routeId.localeCompare(b.routeId));
+          rebuildTerritoryDropdowns();
+        }
+
+        let addedCount = 0;
+        let updatedCount = 0;
+
+        extractedShops.forEach(item => {
+          const existing = db.shops.find(
+            s => s.territory === activeTerritory &&
+                 ((item.custCode && s.custCode && s.custCode.toUpperCase() === item.custCode.toUpperCase()) ||
+                  s.name.toLowerCase() === item.name.toLowerCase())
+          );
+
+          if (existing) {
+            existing.name = item.name;
+            existing.custCode = item.custCode;
+            existing.route = item.route;
+            existing.limit = item.limit;
+            existing.annualSales = item.annualSales;
+            updatedCount++;
+          } else {
+            db.shops.push({
+              id: `IMP-${activeTerritory.slice(0, 2).toUpperCase()}-${item.custCode}-${Date.now()}-${addedCount}`,
+              territory: activeTerritory,
+              route: item.route,
+              name: item.name,
+              custCode: item.custCode,
+              limit: item.limit,
+              annualSales: item.annualSales
+            });
+            addedCount++;
+          }
+        });
+
+        saveDB();
+        statusEl.innerText = `✓ Imported ${foundRoutesMap.size} route(s) and ${extractedShops.length} shop(s) (${addedCount} new, ${updatedCount} updated) into ${activeTerritory}!`;
+      } catch (err) {
+        statusEl.classList.remove('text-[#13311c]');
+        statusEl.classList.add('text-red-700');
+        statusEl.innerText = "Failed to parse productivity PDF.";
+      }
+
+      inputEl.value = "";
+    }
+
+    /* ---------------- STRICT TERRITORY CHECK ON PDF UPLOAD ---------------- */
+    function detectExplicitTerritory(text) {
+      const clean = (text || "").toLowerCase();
+      const hasAnur = /anuradh?apura\s*rep|anuradapura\s*rep|anuradh?apura\s*agency|anuradapura/i.test(clean);
+      const hasMih = /mihin?thale\s*rep|mihin?thale\s*agency|mihin?thale/i.test(clean);
+
+      if (hasAnur && !hasMih) return "Anuradhapura";
+      if (hasMih && !hasAnur) return "Mihintale";
+      if (hasAnur && hasMih) {
+        if (/mihin?thale\s*rep/i.test(clean) && !/anuradh?apura\s*rep/i.test(clean)) return "Mihintale";
+        if (/anuradh?apura\s*rep|anuradapura\s*rep/i.test(clean) && !/mihin?thale\s*rep/i.test(clean)) return "Anuradhapura";
+      }
+      return null;
+    }
+
+    function extractInvoiceNumber(text) {
+      const invMatch = (text || "").match(/(?:Invoice\s*(?:No\.?|#|Number)?|Bill\s*(?:No\.?|#)?|INV)\s*[:\-]?\s*([A-Z0-9_\-\/]{3,20})/i);
+      if (!invMatch) return "";
+      const val = invMatch[1].replace(/[^A-Z0-9_\-]/gi, '').toUpperCase();
+      if (!val || /^(NO|NUMBER|DATE|TO|FROM|PAGE)$/i.test(val)) return "";
+      return val;
+    }
+
+    function isContinuationPage(text, pageNum, extractedInv, lastInvSeen) {
+      const clean = (text || "").toLowerCase();
+
+      if (/\b(cont(?:inued|inuation)?|page\s*(?:2|3|4|5|6|7|8|9|\d+)\s*(?:of|\/)\s*\d+|next\s*page)\b/i.test(clean)) {
+        if (!/\bpage\s*1\s*(?:of|\/)\s*\d+\b/i.test(clean)) {
+          return true;
+        }
+      }
+
+      if (pageNum > 1 && lastInvSeen) {
+        if (!extractedInv || extractedInv === lastInvSeen) {
+          return true;
+        }
+      }
+
+      if (pageNum > 1 && !extractedInv) {
+        return true;
+      }
+
+      return false;
+    }
+
+    function detectCancelFromPdfText(text) {
+      const clean = (text || "").toLowerCase();
+      if (/\b(full\s*cancel|cancelled\s*bill|all\s*cancel)\b/i.test(clean)) return "FULL_CANCEL";
+      if (/\b(partial\s*cancel|item\s*cancel|cancel\s*qty)\b/i.test(clean)) return "PARTIAL_CANCEL";
+      return "NONE";
+    }
+
+    function detectReturnFromPdfText(text) {
+      const clean = (text || "").toLowerCase();
+      if (/\b(production\s*fault|prod\s*fault|mfg\s*fault)\b/i.test(clean)) return "PRODUCTION_FAULT";
+      if (/\b(damage|damaged)\b/i.test(clean)) return "DAMAGE";
+      if (/\b(expire|expired|expiry)\b/i.test(clean)) return "EXPIRE";
+      return "NONE";
+    }
+
+    async function handleSfaPdf(event) {
+      if (!activeTerritory) return;
+      const inputEl = event.target;
+      const file = inputEl.files[0];
+      if (!file) return;
+
+      const prog = document.getElementById('pdf-progress');
+      const container = document.getElementById('sfa-pages-container');
+      prog.classList.remove('hidden');
+      prog.classList.remove('text-red-700');
+      prog.classList.add('text-[#13311c]');
+      prog.innerText = `Checking territory & reading ${file.name}...`;
+      container.innerHTML = "";
+      renderedPages = [];
+      document.getElementById('pdf-controls').classList.add('hidden');
+
+      try {
+        const buffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+        const tempPages = [];
+        let lastInvoiceCode = "";
+        let currentBillId = "";
+        let currentBillTerr = activeTerritory;
+        let currentBillShop = "";
+        let currentBillCust = "";
+        let currentBillDate = daysAgo(0);
+        let currentBillAmount = 0;
+        let currentBillCancel = "NONE";
+        let currentBillReturn = "NONE";
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          prog.innerText = `Verifying page ${pageNum} of ${pdf.numPages}...`;
+          const page = await pdf.getPage(pageNum);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items.map(i => i.str).join(' ');
+
+          const detectedTerr = detectExplicitTerritory(pageText);
+          if (detectedTerr && detectedTerr !== activeTerritory) {
+            inputEl.value = "";
+            renderedPages = [];
+            container.innerHTML = "";
+            document.getElementById('pdf-controls').classList.add('hidden');
+            prog.classList.remove('text-[#13311c]');
+            prog.classList.add('text-red-700');
+            prog.innerText = `❌ Upload Blocked: Page ${pageNum} belongs to ${detectedTerr} (${activeTerritory} login cannot upload ${detectedTerr} bills).`;
+            alert(`Upload Blocked!\n\nThis PDF belongs to ${detectedTerr}.\nYou are logged into ${activeTerritory} Agency, so ${detectedTerr} bills cannot be uploaded here.`);
+            return;
+          }
+
+          const extractedInv = extractInvoiceNumber(pageText);
+          const isContinuation = isContinuationPage(pageText, pageNum, extractedInv, lastInvoiceCode);
+
+          const custMatch = pageText.match(/\b((?:R\d{2,3}|CUS)\d{0,4}-?\d{3,7})\b/i);
+          const dateMatch = pageText.match(/\b(\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4})\b/);
+          const nums = (pageText.match(/\b\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?\b/g) || [])
+            .map(n => Number(n.replace(/,/g, '')))
+            .filter(n => n >= 100 && n <= 10000000);
+          const shopMatch = pageText.match(/Invoiced\s*To\s*:\s*([A-Za-z0-9\s&.\-]+)/i);
+
+          let hasQr = false;
+          let qrPayload = "";
+
+          if (!isContinuation) {
+            hasQr = true;
+            currentBillTerr = detectedTerr || activeTerritory;
+            const prefix = currentBillTerr === "Mihintale" ? "MH" : "AN";
+            const invTag = extractedInv ? extractedInv.slice(0, 14) : `INV${pageNum}`;
+            currentBillId = `${prefix}-${invTag}`;
+            if (extractedInv) lastInvoiceCode = extractedInv;
+
+            currentBillCust = custMatch ? custMatch[1].toUpperCase() : `CUST-${pageNum}`;
+            currentBillDate = dateMatch ? dateMatch[1] : daysAgo(0);
+            currentBillAmount = nums.length ? nums[nums.length - 1] : 0;
+            currentBillShop = shopMatch ? shopMatch[1].trim().slice(0, 32) : `${currentBillTerr} Shop ${pageNum}`;
+            currentBillCancel = detectCancelFromPdfText(pageText);
+            currentBillReturn = detectReturnFromPdfText(pageText);
+
+            qrPayload = buildCompactQrText(
+              currentBillTerr,
+              currentBillId,
+              currentBillAmount,
+              currentBillCancel,
+              currentBillReturn
+            );
+          } else {
+            hasQr = false;
+            if (nums.length && currentBillAmount === 0) {
+              currentBillAmount = nums[nums.length - 1];
+            }
+            if (currentBillCancel === "NONE") currentBillCancel = detectCancelFromPdfText(pageText);
+            if (currentBillReturn === "NONE") currentBillReturn = detectReturnFromPdfText(pageText);
+          }
+
+          const viewport = page.getViewport({ scale: 1.6 });
+          const canvas = document.createElement('canvas');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          const ctx = canvas.getContext('2d');
+          await page.render({ canvasContext: ctx, viewport }).promise;
+
+          tempPages.push({
+            pageNum,
+            hasQr,
+            imgSrc: canvas.toDataURL('image/png'),
+            billId: currentBillId || `${activeTerritory === "Mihintale" ? "MH" : "AN"}-BILL-1`,
+            qrPayload,
+            detectedTerr: currentBillTerr,
+            detectedAmount: currentBillAmount,
+            detectedShop: currentBillShop || `${activeTerritory} Shop`,
+            detectedCustCode: currentBillCust || "-",
+            detectedDate: currentBillDate,
+            cancelType: currentBillCancel,
+            returnType: currentBillReturn
+          });
+        }
+
+        renderedPages = tempPages;
+        const qrPageCount = renderedPages.filter(p => p.hasQr).length;
+        prog.innerText = `✓ Loaded ${renderedPages.length} page(s) for ${activeTerritory} · QR placed on ${qrPageCount} first page(s) only.`;
+        document.getElementById('pdf-controls').classList.remove('hidden');
+        syncRouteColorDots();
+        renderSfaCards();
+      } catch (err) {
+        inputEl.value = "";
+        prog.classList.remove('text-[#13311c]');
+        prog.classList.add('text-red-700');
+        prog.innerText = "Error reading PDF.";
+      }
+      inputEl.value = "";
+    }
+
+    function getQrPx() {
+      return Number(document.getElementById('qr-size-select')?.value || 148);
+    }
+
+    function renderSfaCards() {
+      const container = document.getElementById('sfa-pages-container');
+      const qrSize = getQrPx();
+
+      container.innerHTML = renderedPages.map((p, idx) => `
+        <div class="card-surface rounded-2xl p-3 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="text-xs font-extrabold text-[#13311c]">Page ${p.pageNum} · ${p.billId}</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-emerald-100 text-emerald-800">
+                  ${p.detectedTerr}
+                </span>
+                ${p.hasQr
+                  ? `<span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-amber-100 text-amber-900 border border-amber-300">✓ PAGE-1 QR</span>`
+                  : `<span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-stone-200 text-stone-700">NO QR (Continuation Page)</span>`
+                }
+                ${getCancelBadgeHtml(p.cancelType)}
+                ${getReturnBadgeHtml(p.returnType, 0)}
+              </div>
+              <div class="text-[11px] text-stone-500 mt-0.5">
+                Shop: ${p.detectedShop} · Code: ${p.detectedCustCode}${p.hasQr ? ` · QR: ${p.qrPayload}` : ` · Same bill continuation (QR skipped)`}
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5">
+              ${p.hasQr ? `
+                <input type="text" id="pdf-shop-${idx}" value="${p.detectedShop}" placeholder="Shop Name" class="w-28 p-1.5 rounded-lg border border-stone-300 text-xs" />
+                <input type="text" id="pdf-cust-${idx}" value="${p.detectedCustCode}" placeholder="Cust Code" class="w-24 p-1.5 rounded-lg border border-stone-300 text-xs" />
+                <input type="number" id="pdf-amt-${idx}" value="${p.detectedAmount}" placeholder="Rs." class="w-24 p-1.5 rounded-lg border border-stone-300 text-xs" />
+                <button onclick="saveSfaPageToCredit(${idx})" class="bg-emerald-800 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg">
+                  + Save Bill
+                </button>
+              ` : ""}
+              <button onclick="printSinglePage(${idx})" class="brand-green text-white text-xs font-bold px-3 py-1.5 rounded-lg">
+                🖨️ Print
+              </button>
+            </div>
+          </div>
+
+          <div id="sheet-card-${idx}" class="invoice-sheet border border-stone-300 rounded-lg">
+            <img src="${p.imgSrc}" alt="SFA Invoice Page ${p.pageNum}" />
+            ${p.hasQr ? `
+              <div class="qr-top-right" style="max-width: ${qrSize + 18}px;">
+                <div id="qr-box-${idx}"></div>
+                <div class="qr-caption">${p.billId}</div>
+              </div>
+            ` : ""}
+          </div>
+        </div>
+      `).join('');
+
+      rerenderAllPageQRs();
+    }
+
+    function rerenderAllPageQRs() {
+      const qrSize = getQrPx();
+      renderedPages.forEach((p, idx) => {
+        if (!p.hasQr) return;
+        const box = document.getElementById(`qr-box-${idx}`);
+        const badge = document.querySelector(`#sheet-card-${idx} .qr-top-right`);
+        if (!box) return;
+        if (badge) badge.style.maxWidth = `${qrSize + 18}px`;
+        box.innerHTML = "";
+        new QRCode(box, {
+          text: p.qrPayload,
+          width: qrSize,
+          height: qrSize,
+          correctLevel: QRCode.CorrectLevel.L
+        });
+      });
+    }
+
+    function saveSfaPageToCredit(idx) {
+      const p = renderedPages[idx];
+      if (!p || !p.hasQr) return;
+      if (p.detectedTerr !== activeTerritory) {
+        return alert(`Blocked: This bill belongs to ${p.detectedTerr}. Switch to ${p.detectedTerr} Agency.`);
+      }
+
+      const shopName = (document.getElementById(`pdf-shop-${idx}`)?.value || p.detectedShop || "Shop").trim();
+      const custCode = (document.getElementById(`pdf-cust-${idx}`)?.value || p.detectedCustCode || "").trim();
+      const amount = Number(document.getElementById(`pdf-amt-${idx}`)?.value || p.detectedAmount || 0);
+      const route = document.getElementById('pdf-route-select')?.value || TERRITORY_ROUTES[activeTerritory][0].label;
+      const staff = TERRITORY_STAFF[activeTerritory][0];
+
+      if (amount <= 0) return alert("Enter bill amount (Rs.) to save.");
+
+      const existing = db.bills.find(b => b.id.toLowerCase() === p.billId.toLowerCase());
+      if (existing) {
+        if (existing.territory !== activeTerritory) {
+          return alert(`Blocked: ${p.billId} belongs to ${existing.territory}.`);
+        }
+        existing.shopName = shopName;
+        existing.custCode = custCode || existing.custCode;
+        existing.route = route;
+        existing.amount = amount;
+        existing.lastAction = "Updated from SFA PDF";
+      } else {
+        db.bills.unshift({
+          id: p.billId,
+          territory: activeTerritory,
+          shopName,
+          custCode,
+          route,
+          date: p.detectedDate || daysAgo(0),
+          amount,
+          paid: 0,
+          cancelType: p.cancelType || "NONE",
+          returnType: p.returnType || "NONE",
+          returnAmt: 0,
+          carrier: staff,
+          dispatchedMorning: true,
+          lastAction: "Added from SFA PDF"
+        });
+      }
+      saveDB();
+      alert(`Saved ${p.billId} (${shopName} - ${fmt(amount)}) under ${activeTerritory}!`);
+    }
+
+    function printSinglePage(idx) {
+      const sheet = document.getElementById(`sheet-card-${idx}`);
+      const stage = document.getElementById('print-stage');
+      if (!sheet || !stage) return;
+
+      stage.innerHTML = "";
+      const clone = sheet.cloneNode(true);
+      const qrSize = getQrPx();
+      const cloneQrBox = clone.querySelector(`#qr-box-${idx}`);
+      if (cloneQrBox && renderedPages[idx]?.hasQr) {
+        cloneQrBox.innerHTML = "";
+        new QRCode(cloneQrBox, {
+          text: renderedPages[idx].qrPayload,
+          width: qrSize,
+          height: qrSize,
+          correctLevel: QRCode.CorrectLevel.L
+        });
+      }
+      stage.appendChild(clone);
+      stage.classList.remove('hidden');
+      window.print();
+      setTimeout(() => {
+        stage.classList.add('hidden');
+        stage.innerHTML = "";
+      }, 400);
+    }
+
+    function printAllRenderedPages() {
+      const stage = document.getElementById('print-stage');
+      if (!renderedPages.length || !stage) return;
+
+      stage.innerHTML = "";
+      const qrSize = getQrPx();
+      renderedPages.forEach((p, idx) => {
+        const orig = document.getElementById(`sheet-card-${idx}`);
+        if (!orig) return;
+        const clone = orig.cloneNode(true);
+        const cloneQrBox = clone.querySelector(`#qr-box-${idx}`);
+        if (cloneQrBox && p.hasQr) {
+          cloneQrBox.innerHTML = "";
+          new QRCode(cloneQrBox, {
+            text: p.qrPayload,
+            width: qrSize,
+            height: qrSize,
+            correctLevel: QRCode.CorrectLevel.L
+          });
+        }
+        stage.appendChild(clone);
+      });
+
+      stage.classList.remove('hidden');
+      window.print();
+      setTimeout(() => {
+        stage.classList.add('hidden');
+        stage.innerHTML = "";
+      }, 500);
+    }
+
+    /* ---------------- SCANNED SHEET LIST & PRINT ---------------- */
+    function recordScannedBillToSheet(billId) {
+      if (!activeTerritory || !billId) return;
+      const list = db.scannedTodayByTerr[activeTerritory] || [];
+      if (!list.includes(billId)) {
+        list.push(billId);
+        db.scannedTodayByTerr[activeTerritory] = list;
+        localStorage.setItem('gd_strict_agency_v10', JSON.stringify(db));
+        updateScannedSheetBanner();
+      }
+    }
+
+    function updateScannedSheetBanner() {
+      if (!activeTerritory) return;
+      const list = db.scannedTodayByTerr[activeTerritory] || [];
+      const el = document.getElementById('scanned-sheet-count');
+      if (el) el.innerText = `${list.length} bill(s) scanned in ${activeTerritory} today`;
+    }
+
+    function clearTodayScannedList() {
+      if (!activeTerritory) return;
+      db.scannedTodayByTerr[activeTerritory] = [];
+      saveDB();
+    }
+
+    function printScannedDispatchSheet() {
+      if (!activeTerritory) return;
+      const scannedIds = db.scannedTodayByTerr[activeTerritory] || [];
+      const route = document.getElementById('sheet-route-select')?.value || TERRITORY_ROUTES[activeTerritory][0].label;
+      const staff = document.getElementById('sheet-staff-select')?.value || TERRITORY_STAFF[activeTerritory][0];
+      const todayStr = daysAgo(0);
+
+      let targetBills = scannedIds
+        .map(id => db.bills.find(b => b.id === id && b.territory === activeTerritory))
+        .filter(Boolean);
+
+      if (!targetBills.length) {
+        targetBills = db.bills.filter(b => b.territory === activeTerritory && b.route === route && (b.amount - b.paid) > 0);
+      }
+
+      let totalOutstanding = 0;
+      const rowsHtml = targetBills.map((b, i) => {
+        const bal = Math.max(0, b.amount - b.paid);
+        totalOutstanding += bal;
+        const cancelTag = b.cancelType === "FULL_CANCEL" ? " [FULL CANCEL]" : (b.cancelType === "PARTIAL_CANCEL" ? " [PARTIAL CANCEL]" : "");
+        const retTag = b.returnType && b.returnType !== "NONE" ? ` [${b.returnType} ${fmt(b.returnAmt || 0)}]` : "";
+        return `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${b.date || todayStr}</td>
+            <td><strong>${b.shopName}</strong>${cancelTag}${retTag}<br/><small>${b.id}</small></td>
+            <td>${b.custCode || "-"}</td>
+            <td style="text-align:right;"><strong>${fmt(bal)}</strong></td>
+          </tr>
+        `;
+      }).join('');
+
+      const stage = document.getElementById('print-stage');
+      stage.innerHTML = `
+        <div class="dispatch-report-sheet">
+          <div style="border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 8px;">
+            <div style="font-size: 16px; font-weight: 800;">GOLDEN DISTRIBUTORS - DISPATCH / CREDIT SHEET</div>
+            <div style="font-size: 12px; margin-top: 3px;">
+              <strong>Date:</strong> ${todayStr} &nbsp;|&nbsp;
+              <strong>Territory:</strong> ${activeTerritory} &nbsp;|&nbsp;
+              <strong>Route:</strong> ${route}
+            </div>
+            <div style="font-size: 12px; margin-top: 2px;">
+              <strong>Assigned To:</strong> ${staff} &nbsp;|&nbsp;
+              <strong>Bills Count:</strong> ${targetBills.length}
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Bill Date</th>
+                <th>Shop Name / Bill No</th>
+                <th>Outlet ID / Code</th>
+                <th style="text-align:right;">Outstanding Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml || `<tr><td colspan="5">No bills found for sheet.</td></tr>`}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" style="text-align:right;"><strong>TOTAL OUTSTANDING:</strong></td>
+                <td style="text-align:right;"><strong>${fmt(totalOutstanding)}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <div style="margin-top: 18px; display: flex; justify-content: space-between; font-size: 11px;">
+            <div>Prepared By: _____________________</div>
+            <div>Received By (${staff}): _____________________</div>
+          </div>
+        </div>
+      `;
+
+      stage.classList.remove('hidden');
+      window.print();
+      setTimeout(() => {
+        stage.classList.add('hidden');
+        stage.innerHTML = "";
+      }, 450);
+    }
+
+    /* ---------------- QR SCANNER & STRICT TERRITORY ENFORCEMENT ---------------- */
+    async function startCameraScan() {
+      const statusEl = document.getElementById('qr-scanner-status');
+      if (!window.Html5Qrcode) {
+        statusEl.innerText = "Scanner library unavailable. Use 'Scan Photo' or select bill below.";
+        return;
+      }
+
+      try {
+        await stopCameraScan();
+        html5QrScanner = new Html5Qrcode("qr-reader");
+        statusEl.innerText = `Starting camera (${activeTerritory} session)...`;
+
+        await html5QrScanner.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 220, height: 220 } },
+          async (decodedText) => {
+            const code = decodedText.trim();
+            await stopCameraScan();
+            openBillSettlement(code);
+          },
+          () => {}
+        );
+        statusEl.innerText = `Camera active for ${activeTerritory}—point at QR code.`;
+      } catch (err) {
+        statusEl.innerText = "Camera unavailable/blocked. Use 'Scan Photo' or select/type bill ID.";
+      }
+    }
+
+    async function stopCameraScan() {
+      if (html5QrScanner) {
+        try {
+          if (html5QrScanner.isScanning) {
+            await html5QrScanner.stop();
+          }
+          await html5QrScanner.clear();
+        } catch (e) {}
+        html5QrScanner = null;
+      }
+    }
+
+    async function scanQrImageFile(event) {
+      const file = event.target.files[0];
+      if (!file || !window.Html5Qrcode) return;
+      const statusEl = document.getElementById('qr-scanner-status');
+      statusEl.innerText = "Reading QR from image...";
+      try {
+        const tempScanner = new Html5Qrcode("qr-reader");
+        const decoded = await tempScanner.scanFile(file, true);
+        await tempScanner.clear();
+        openBillSettlement(decoded.trim());
+      } catch (err) {
+        statusEl.innerText = "Could not read QR from photo. Try closer light or enter bill ID.";
+      }
+    }
+
+    function openBillSettlement(rawInput) {
+      if (!rawInput || !activeTerritory) return;
+      const statusEl = document.getElementById('qr-scanner-status');
+
+      const parsed = parseQrInput(rawInput);
+      const lookupId = parsed?.id || String(rawInput).trim();
+      const qrTerr = parsed?.territory || null;
+
+      let bill = db.bills.find(b => b.id.toLowerCase() === lookupId.toLowerCase());
+      const actualTerr = bill ? bill.territory : qrTerr;
+
+      if (actualTerr && actualTerr !== activeTerritory) {
+        document.getElementById('active-bill-card').classList.add('hidden');
+        statusEl.innerText = `Access Denied: ${lookupId} belongs to ${actualTerr}. Switch to ${actualTerr} login.`;
+        alert(`Access Denied: ${lookupId} belongs to ${actualTerr}. You are currently logged into ${activeTerritory}.`);
+        return;
+      }
+
+      if (!bill) {
+        const route = document.getElementById('sheet-route-select')?.value || TERRITORY_ROUTES[activeTerritory][0].label;
+        const staff = document.getElementById('sheet-staff-select')?.value || TERRITORY_STAFF[activeTerritory][0];
+        bill = {
+          id: lookupId,
+          territory: activeTerritory,
+          shopName: parsed?.shopName || `${activeTerritory} Shop (${lookupId})`,
+          custCode: parsed?.custCode || "-",
+          route,
+          date: parsed?.date || daysAgo(0),
+          amount: Number(parsed?.amount || 10000),
+          paid: 0,
+          cancelType: parsed?.cancelType || "NONE",
+          returnType: parsed?.returnType || "NONE",
+          returnAmt: Number(parsed?.returnAmt || 0),
+          carrier: staff,
+          dispatchedMorning: true,
+          lastAction: `Loaded from QR in ${activeTerritory}`
+        };
+        db.bills.unshift(bill);
+        saveDB();
+      } else if (parsed) {
+        if (parsed.shopName) bill.shopName = parsed.shopName;
+        if (parsed.custCode) bill.custCode = parsed.custCode;
+        if (parsed.date) bill.date = parsed.date;
+        if (Number(parsed.amount || 0) > 0) bill.amount = Number(parsed.amount);
+        if (parsed.cancelType && parsed.cancelType !== "NONE") bill.cancelType = parsed.cancelType;
+        if (parsed.returnType && parsed.returnType !== "NONE") {
+          bill.returnType = parsed.returnType;
+          if (Number(parsed.returnAmt || 0) > 0) bill.returnAmt = Number(parsed.returnAmt);
+        }
+        saveDB();
+      }
+
+      recordScannedBillToSheet(bill.id);
+      currentScannedBillId = bill.id;
+      const bal = Math.max(0, bill.amount - bill.paid);
+      statusEl.innerText = `Loaded Bill: ${bill.id} (${activeTerritory})`;
+
+      document.getElementById('active-bill-card').classList.remove('hidden');
+      document.getElementById('ab-code').innerText = `Bill / QR: ${bill.id} · ${bill.territory}`;
+      document.getElementById('ab-shop-route').innerHTML = `<span class="route-dot" style="background-color:${getRouteColorHex(bill.route)};margin-right:5px;"></span>${bill.shopName} · ${bill.route}`;
+      document.getElementById('ab-cust-code').innerText = `Outlet ID / Code: ${bill.custCode || "-"} · Bill Date: ${bill.date}`;
+      document.getElementById('ab-flags').innerHTML =
+        `${getCancelBadgeHtml(bill.cancelType)} ${getReturnBadgeHtml(bill.returnType, bill.returnAmt)}`;
+      document.getElementById('ab-status').innerText =
+        `${bill.dispatchedMorning ? 'Morning Dispatched' : 'Pending Dispatch'} · ${bill.carrier || 'Unassigned'} · ${bill.lastAction || ''}`;
+      document.getElementById('ab-balance').innerText = fmt(bal);
+      document.getElementById('ab-breakdown').innerText = `Bill Total: ${fmt(bill.amount)} | Paid: ${fmt(bill.paid)}`;
+
+      document.getElementById('ab-cancel-type').value = bill.cancelType || "NONE";
+      document.getElementById('ab-return-type').value = bill.returnType || "NONE";
+      document.getElementById('ab-return-amt').value = bill.returnAmt || "";
+      document.getElementById('ab-carrier').value = bill.carrier || "";
+      document.getElementById('ab-partial-input').value = bill.paid > 0 && bill.paid < bill.amount ? String(bill.paid) : "";
+    }
+
+    function updateBillCancelType(cancelType) {
+      const bill = db.bills.find(b => b.id === currentScannedBillId && b.territory === activeTerritory);
+      if (!bill) return;
+      bill.cancelType = cancelType;
+      if (cancelType === "FULL_CANCEL") {
+        bill.paid = bill.amount;
+        bill.lastAction = "Marked FULL CANCEL (Balance Rs. 0)";
+      } else if (cancelType === "PARTIAL_CANCEL") {
+        bill.lastAction = "Marked PARTIAL CANCEL";
+      } else {
+        bill.lastAction = "Cancel Cleared";
+      }
+      saveDB();
+      openBillSettlement(bill.id);
+    }
+
+    function saveBillReturnDetails() {
+      const bill = db.bills.find(b => b.id === currentScannedBillId && b.territory === activeTerritory);
+      if (!bill) return;
+      const returnType = document.getElementById('ab-return-type')?.value || "NONE";
+      const returnAmt = Number(document.getElementById('ab-return-amt')?.value || 0);
+      bill.returnType = returnType;
+      bill.returnAmt = returnAmt;
+      bill.lastAction = returnType === "NONE"
+        ? "Return Cleared"
+        : `Return Logged: ${returnType} (${fmt(returnAmt)})`;
+      saveDB();
+      openBillSettlement(bill.id);
+    }
+
+    function updateBillCarrier(carrier) {
+      const bill = db.bills.find(b => b.id === currentScannedBillId && b.territory === activeTerritory);
+      if (!bill) return;
+      bill.carrier = carrier;
+      bill.lastAction = `Assigned to ${carrier || 'None'}`;
+      saveDB();
+      openBillSettlement(bill.id);
+    }
+
+    function markMorningDispatched() {
+      const bill = db.bills.find(b => b.id === currentScannedBillId && b.territory === activeTerritory);
+      if (!bill) return;
+      bill.dispatchedMorning = true;
+      recordScannedBillToSheet(bill.id);
+      bill.lastAction = `Morning Dispatched (${daysAgo(0)})`;
+      saveDB();
+      openBillSettlement(bill.id);
+    }
+
+    function settleFullAmount() {
+      const bill = db.bills.find(b => b.id === currentScannedBillId && b.territory === activeTerritory);
+      if (!bill) return;
+      const prevPaid = Number(bill.paid || 0);
+      const added = Math.max(0, bill.amount - prevPaid);
+      bill.paid = bill.amount;
+      bill.lastAction = `Full Paid (${fmt(bill.amount)})`;
+      if (added > 0) setCollectedToday(getCollectedToday() + added);
+      saveDB();
+      openBillSettlement(bill.id);
+    }
+
+    function settlePartialAmount() {
+      const bill = db.bills.find(b => b.id === currentScannedBillId && b.territory === activeTerritory);
+      if (!bill) return;
+      const rawVal = Number(document.getElementById('ab-partial-input').value);
+      if (isNaN(rawVal) || rawVal < 0) return alert("Enter valid partial payment amount (Rs.).");
+      const newPaid = Math.min(bill.amount, rawVal);
+      const prevPaid = Number(bill.paid || 0);
+      const delta = newPaid - prevPaid;
+      bill.paid = newPaid;
+      bill.lastAction = `Partial Paid: ${fmt(newPaid)} (Due: ${fmt(Math.max(0, bill.amount - newPaid))})`;
+      setCollectedToday(getCollectedToday() + delta);
+      saveDB();
+      openBillSettlement(bill.id);
+    }
+
+    function settleZeroPayment() {
+      const bill = db.bills.find(b => b.id === currentScannedBillId && b.territory === activeTerritory);
+      if (!bill) return;
+      const prevPaid = Number(bill.paid || 0);
+      bill.paid = 0;
+      bill.lastAction = `No Payment · Full Due: ${fmt(bill.amount)}`;
+      if (prevPaid > 0) setCollectedToday(getCollectedToday() - prevPaid);
+      saveDB();
+      openBillSettlement(bill.id);
+    }
+
+    function addCreditBillManual() {
+      if (!activeTerritory) return;
+      const route = document.getElementById('new-cr-route').value;
+      const shopName = document.getElementById('new-cr-shop').value.trim();
+      const custCode = document.getElementById('new-cr-cust-code').value.trim();
+      const amount = Number(document.getElementById('new-cr-amount').value || 0);
+      const cancelType = document.getElementById('new-cr-cancel').value;
+      const returnType = document.getElementById('new-cr-return-type').value;
+      const returnAmt = Number(document.getElementById('new-cr-return-amt').value || 0);
+      const carrier = document.getElementById('new-cr-carrier').value;
+
+      if (!shopName || amount <= 0) return alert("Enter shop name and bill amount.");
+
+      const prefix = activeTerritory === "Mihintale" ? "MH" : "AN";
+      const id = `${prefix}-${1001 + db.bills.length}`;
+      db.bills.unshift({
+        id,
+        territory: activeTerritory,
+        shopName,
+        custCode: custCode || "-",
+        route,
+        date: daysAgo(0),
+        amount,
+        paid: cancelType === "FULL_CANCEL" ? amount : 0,
+        cancelType,
+        returnType,
+        returnAmt,
+        carrier,
+        dispatchedMorning: true,
+        lastAction: cancelType === "FULL_CANCEL" ? "Full Cancel Logged" : "Bill Added"
+      });
+
+      document.getElementById('new-cr-shop').value = '';
+      document.getElementById('new-cr-cust-code').value = '';
+      document.getElementById('new-cr-amount').value = '';
+      document.getElementById('new-cr-return-amt').value = '';
+      saveDB();
+    }
+
+    function renderCreditExplorer() {
+      if (!activeTerritory) return;
+      const routeFilter = document.getElementById('filter-route')?.value || "ALL";
+      const shopSearch = (document.getElementById('filter-shop-search')?.value || "").trim().toLowerCase();
+      const routeCount = TERRITORY_ROUTES[activeTerritory].length;
+
+      const matchingBills = db.bills.filter(b => {
+        if (b.territory !== activeTerritory) return false;
+        if (routeFilter !== "ALL" && b.route !== routeFilter) return false;
+        if (shopSearch) {
+          const hay = `${b.shopName || ""} ${b.custCode || ""} ${b.id || ""} ${b.cancelType || ""} ${b.returnType || ""}`.toLowerCase();
+          if (!hay.includes(shopSearch)) return false;
+        }
+        return true;
+      });
+
+      const openMatching = matchingBills.filter(b => (b.amount - b.paid) > 0);
+      const scopeCreditSum = openMatching.reduce((s, b) => s + Math.max(0, b.amount - b.paid), 0);
+
+      const shopMap = {};
+      openMatching.forEach(b => {
+        const key = `${b.shopName}__${b.route}`;
+        if (!shopMap[key]) {
+          shopMap[key] = { shopName: b.shopName, custCode: b.custCode || "-", route: b.route, openCount: 0, dueTotal: 0 };
+        }
+        shopMap[key].openCount += 1;
+        shopMap[key].dueTotal += Math.max(0, b.amount - b.paid);
+      });
+
+      const shopListArr = Object.values(shopMap).sort((a, b) => b.dueTotal - a.dueTotal);
+
+      document.getElementById('scope-title').innerText =
+        `${activeTerritory} · ${routeFilter === "ALL" ? `All ${routeCount} Routes` : routeFilter}`;
+      document.getElementById('scope-meta').innerText =
+        `${openMatching.length} open bill(s) · ${shopListArr.length} shop(s) with balance`;
+      document.getElementById('scope-total').innerText = fmt(scopeCreditSum);
+      syncRouteColorDots();
+
+      document.getElementById('shop-credit-summary').innerHTML = shopListArr.length
+        ? shopListArr.map(sc => `
+            <div class="bg-stone-50 border border-stone-200 rounded-xl p-3 flex items-center justify-between">
+              <div>
+                <div class="font-extrabold text-xs text-[#13311c]">
+                  <span class="route-dot" style="background-color:${getRouteColorHex(sc.route)};margin-right:6px;"></span>
+                  ${sc.shopName} <span class="font-normal text-stone-500">(${sc.custCode})</span>
+                </div>
+                <div class="text-[11px] text-stone-500">${sc.route} · <strong>${sc.openCount}</strong> open bill(s)</div>
+              </div>
+              <div class="text-right">
+                <div class="text-sm font-extrabold text-red-700">${fmt(sc.dueTotal)}</div>
+                <div class="text-[10px] text-stone-500">Outstanding</div>
+              </div>
+            </div>
+          `).join('')
+        : `<div class="text-xs text-stone-500">No open credit shops in this filter.</div>`;
+
+      document.getElementById('credit-bills-list').innerHTML = matchingBills.length
+        ? matchingBills.map(b => {
+            const bal = Math.max(0, b.amount - b.paid);
+            return `
+              <div class="card-surface rounded-xl p-3 flex items-center justify-between gap-2">
+                <div>
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="route-dot" style="background-color:${getRouteColorHex(b.route)};"></span>
+                    <span class="font-extrabold text-xs text-[#13311c]">${b.id}</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${bal > 0 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">
+                      ${bal > 0 ? 'Due: ' + fmt(bal) : 'SETTLED'}
+                    </span>
+                    ${getCancelBadgeHtml(b.cancelType)}
+                    ${getReturnBadgeHtml(b.returnType, b.returnAmt)}
+                    <span class="text-[10px] font-semibold text-stone-600">${b.carrier || ''}</span>
+                  </div>
+                  <div class="font-bold text-xs mt-0.5">${b.shopName} <span class="font-normal text-stone-500">[${b.custCode || "-"}] · ${b.route}</span></div>
+                  <div class="text-[10px] text-stone-500">Date: ${b.date} · Total: ${fmt(b.amount)} · Paid: ${fmt(b.paid)} · ${b.lastAction || ""}</div>
+                </div>
+                <button onclick="openBillSettlement('${b.id}')" class="brand-gold text-[#13311c] text-xs font-bold px-3 py-2 rounded-lg shrink-0">
+                  Edit / Settle
+                </button>
+              </div>
+            `;
+          }).join('')
+        : `<div class="text-xs text-stone-500">No bills in ${activeTerritory} for this filter.</div>`;
+    }
+
+    function addShop() {
+      if (!activeTerritory) return;
+      const route = document.getElementById('shop-route').value;
+      const name = document.getElementById('shop-name').value.trim();
+      const custCode = document.getElementById('shop-cust-code').value.trim();
+      const limit = Number(document.getElementById('shop-limit').value || 150000);
+      if (!name) return alert("Enter shop name.");
+      db.shops.push({ id: "S" + Date.now(), territory: activeTerritory, route, name, custCode: custCode || "-", limit, annualSales: 0 });
+      document.getElementById('shop-name').value = '';
+      document.getElementById('shop-cust-code').value = '';
+      saveDB();
+    }
+
+    function addCheque() {
+      if (!activeTerritory) return;
+      const shopName = document.getElementById('chq-shop-name').value.trim() || "Shop";
+      const number = document.getElementById('chq-number').value.trim();
+      const bank = document.getElementById('chq-bank').value.trim();
+      const amount = Number(document.getElementById('chq-amount').value);
+      const date = document.getElementById('chq-date').value || daysAgo(0);
+      if (!number || amount <= 0) return alert("Enter cheque number and amount.");
+      db.cheques.unshift({ id: "C" + Date.now(), territory: activeTerritory, shopName, number, bank, amount, date, status: "Pending" });
+      document.getElementById('chq-number').value = '';
+      document.getElementById('chq-bank').value = '';
+      document.getElementById('chq-amount').value = '';
+      saveDB();
+    }
+
+    function markChequeDeposited(id) {
+      const c = db.cheques.find(x => x.id === id && x.territory === activeTerritory);
+      if (c) c.status = "Deposited";
+      saveDB();
+    }
+
+    function calcProfit() {
+      const sales = Number(document.getElementById('prof-sales').value || 0);
+      const cogs = Number(document.getElementById('prof-cogs').value || 0);
+      const fuel = Number(document.getElementById('prof-fuel').value || 0);
+      const staff = Number(document.getElementById('prof-staff').value || 0);
+      document.getElementById('prof-net').innerText = fmt(sales - cogs - fuel - staff);
+    }
+
+    function refreshAll() {
+      if (!activeTerritory) return;
+      const today = daysAgo(0);
+      const terrBills = db.bills.filter(b => b.territory === activeTerritory);
+      const terrShops = db.shops.filter(s => s.territory === activeTerritory);
+      const terrCheques = db.cheques.filter(c => c.territory === activeTerritory);
+      const routeCount = TERRITORY_ROUTES[activeTerritory].length;
+
+      let totalCredit = 0, openBillsCount = 0, billedToday = 0, billedCount = 0;
+
+      terrBills.forEach(b => {
+        const bal = Math.max(0, b.amount - b.paid);
+        if (b.date === today) {
+          billedToday += b.amount;
+          billedCount++;
+        }
+        if (bal > 0) {
+          totalCredit += bal;
+          openBillsCount++;
+        }
+      });
+
+      document.getElementById('dash-total-credit').innerText = fmt(totalCredit);
+      document.getElementById('dash-open-bills').innerText = `${openBillsCount} open bills · ${routeCount} routes (${activeTerritory})`;
+      document.getElementById('dash-collected-today').innerText = fmt(getCollectedToday());
+      document.getElementById('dash-billed-today').innerText = fmt(billedToday);
+      document.getElementById('dash-billed-count').innerText = `${billedCount} bills`;
+
+      const quickSel = document.getElementById('quick-bill-select');
+      if (quickSel) {
+        quickSel.innerHTML = `<option value="">-- Select ${activeTerritory} Bill to Scan / Settle --</option>` +
+          terrBills.map(b => {
+            const bal = Math.max(0, b.amount - b.paid);
+            return `<option value="${b.id}">${b.id} · ${b.shopName} (Due: ${fmt(bal)})</option>`;
+          }).join('');
+      }
+
+      const shopSearchQ = (document.getElementById('shop-list-search')?.value || '').trim().toLowerCase();
+      const filteredShops = shopSearchQ
+        ? terrShops.filter(s => `${s.name} ${s.custCode} ${s.route}`.toLowerCase().includes(shopSearchQ))
+        : terrShops;
+
+      document.getElementById('shops-list').innerHTML = filteredShops.map(s => `
+        <div class="card-surface rounded-xl p-3 flex items-center justify-between gap-2">
+          <div>
+            <div class="font-bold text-xs text-[#13311c]">
+              <span class="route-dot" style="background-color:${getRouteColorHex(s.route)};margin-right:6px;"></span>
+              ${s.name} <span class="font-normal text-stone-500">(${s.custCode || "-"})</span>
+            </div>
+            <div class="text-[11px] text-stone-500">${s.route}${Number(s.annualSales || 0) > 0 ? ` · 12M Sales: ${fmt(s.annualSales)}` : ''}</div>
+          </div>
+          <div class="text-xs font-bold text-stone-700 shrink-0">Limit: ${fmt(s.limit)}</div>
+        </div>
+      `).join('');
+
+      document.getElementById('cheques-list').innerHTML = terrCheques.map(c => `
+        <div class="bg-stone-50 border border-stone-200 rounded-xl p-3 flex items-center justify-between">
+          <div>
+            <div class="font-bold text-xs text-[#13311c]">#${c.number} · ${c.bank} (${fmt(c.amount)})</div>
+            <div class="text-[11px] text-stone-500">${c.shopName} · Deposit Date: <strong>${c.date}</strong></div>
+          </div>
+          ${c.status === 'Pending'
+            ? `<button onclick="markChequeDeposited('${c.id}')" class="brand-gold text-[#13311c] text-xs font-bold px-3 py-1.5 rounded-lg">Deposit</button>`
+            : `<span class="text-xs font-bold text-emerald-700">✓ Deposited</span>`
+          }
+        </div>
+      `).join('');
+
+      const terrSales = terrBills.reduce((s, b) => s + b.amount, 0);
+      document.getElementById('prof-sales').value = terrSales;
+      document.getElementById('prof-cogs').value = Math.round(terrSales * 0.84);
+      calcProfit();
+
+      updateScannedSheetBanner();
+      renderCreditExplorer();
+    }
+
+    function exportData() {
+      const blob = new Blob([JSON.stringify(db, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `Golden_Agencies_Backup_${daysAgo(0)}.json`;
+      a.click();
+    }
+
+    function importData(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          db = JSON.parse(ev.target.result);
+          saveDB();
+          alert("Backup restored successfully!");
+        } catch (err) {
+          alert("Invalid backup file.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    applyTerritoryContext();
+  </script>
+</body>
+</html>
