@@ -30,7 +30,6 @@
       border: 1px solid #e6e2d6;
     }
 
-    /* Invoice Sheet with Top-Right QR */
     .invoice-sheet {
       position: relative;
       background: #ffffff;
@@ -66,7 +65,6 @@
       line-height: 1.1;
     }
 
-    /* Print Only Active Sheet Cleanly Without Clipping */
     @media print {
       @page {
         margin: 6mm;
@@ -115,32 +113,31 @@
       <div class="brand-gold text-[#13311c] font-extrabold w-9 h-9 rounded-lg flex items-center justify-center text-lg">G</div>
       <div>
         <h1 class="font-bold text-base leading-tight">Golden Distributors</h1>
-        <p class="text-[11px] text-emerald-200">Freelands SFA · Top-Right QR Print</p>
+        <p class="text-[11px] text-emerald-200">Freelands Enterprises · 12 Routes</p>
       </div>
     </div>
-    <button onclick="switchTab('cheques')" class="bg-[#1e462a] border border-emerald-700 px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5">
-      <span>Alerts</span>
-      <span id="alert-badge" class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">0</span>
+    <button onclick="switchTab('credit')" class="brand-gold text-[#13311c] px-3 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-1.5 shadow">
+      <span>QR Scan / Credit</span>
     </button>
   </header>
 
   <!-- Main Container -->
-  <main class="max-w-3xl mx-auto p-4 space-y-4 no-print">
+  <main class="max-w-4xl mx-auto p-4 space-y-4 no-print">
 
     <!-- TAB 1: EXECUTIVE DASHBOARD -->
     <section id="tab-dashboard" class="space-y-4">
-      <div class="flex items-center justify-between">
+      <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 class="text-xl font-extrabold text-[#13311c]">Executive Dashboard</h2>
-          <p class="text-xs text-stone-500">12 Routes · Anuradhapura & Mihintale</p>
+          <p class="text-xs text-stone-500">Anuradhapura (6 Routes) & Mihintale (6 Routes)</p>
         </div>
-        <button onclick="openScannerModal()" class="brand-gold text-[#13311c] font-bold text-xs px-3 py-2 rounded-lg shadow">
-          📷 Scan QR Settle
+        <button onclick="switchTab('credit')" class="brand-gold text-[#13311c] font-bold text-xs px-3 py-2 rounded-lg shadow">
+          📷 Open Credit & QR
         </button>
       </div>
 
       <div class="brand-green text-white rounded-2xl p-5 shadow-md">
-        <div class="text-[11px] uppercase tracking-wider text-emerald-200 font-semibold">Combined Total Credit</div>
+        <div class="text-[11px] uppercase tracking-wider text-emerald-200 font-semibold">Combined Total Outstanding Credit</div>
         <div id="dash-total-credit" class="text-3xl font-extrabold mt-1">Rs. 0</div>
         <div id="dash-open-bills" class="text-xs text-emerald-200 mt-1">0 open bills · 12 routes</div>
       </div>
@@ -149,12 +146,12 @@
         <div class="card-surface rounded-2xl p-4 border-l-4 border-l-[#13311c]">
           <div class="text-[11px] font-bold text-stone-500 uppercase">Anuradhapura Territory (6 Routes)</div>
           <div id="dash-anu-credit" class="text-2xl font-extrabold text-[#13311c] mt-1">Rs. 0</div>
-          <div id="dash-anu-pct" class="text-xs text-stone-500 mt-1">0% of total credit</div>
+          <div id="dash-anu-sub" class="text-xs text-stone-500 mt-1">0 open bills · 0%</div>
         </div>
         <div class="card-surface rounded-2xl p-4 border-l-4 border-l-amber-600">
           <div class="text-[11px] font-bold text-stone-500 uppercase">Mihintale Territory (6 Routes)</div>
           <div id="dash-mih-credit" class="text-2xl font-extrabold text-[#13311c] mt-1">Rs. 0</div>
-          <div id="dash-mih-pct" class="text-xs text-stone-500 mt-1">0% of total credit</div>
+          <div id="dash-mih-sub" class="text-xs text-stone-500 mt-1">0 open bills · 0%</div>
         </div>
       </div>
 
@@ -162,43 +159,12 @@
         <div class="card-surface rounded-2xl p-4">
           <div class="text-[11px] font-bold text-stone-500 uppercase">Collected Today</div>
           <div id="dash-collected-today" class="text-xl font-extrabold text-emerald-800 mt-1">Rs. 0</div>
-          <div class="text-[11px] text-stone-500 mt-1">Cash & Settlements</div>
+          <div class="text-[11px] text-stone-500 mt-1">Evening / Daily Settlements</div>
         </div>
         <div class="card-surface rounded-2xl p-4">
-          <div class="text-[11px] font-bold text-stone-500 uppercase">Billed Today</div>
+          <div class="text-[11px] font-bold text-stone-500 uppercase">Dispatched / Billed Today</div>
           <div id="dash-billed-today" class="text-xl font-extrabold text-[#13311c] mt-1">Rs. 0</div>
           <div id="dash-billed-count" class="text-[11px] text-stone-500 mt-1">0 bills</div>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3">
-        <div class="card-surface rounded-2xl p-4 border-l-4 border-l-red-600">
-          <div class="text-[11px] font-bold text-red-700 uppercase">Overdue (15+ Days)</div>
-          <div id="dash-overdue" class="text-xl font-extrabold text-red-700 mt-1">Rs. 0</div>
-          <div id="dash-overdue-count" class="text-[11px] text-stone-500 mt-1">0 bills</div>
-        </div>
-        <div onclick="switchTab('cheques')" class="brand-gold rounded-2xl p-4 cursor-pointer shadow-sm">
-          <div class="text-[11px] font-bold text-[#13311c] uppercase">Cheques to Deposit</div>
-          <div id="dash-cheques-due" class="text-xl font-extrabold text-[#13311c] mt-1">Rs. 0</div>
-          <div id="dash-cheques-count" class="text-[11px] text-[#13311c] font-medium mt-1">0 pending deposit</div>
-        </div>
-      </div>
-
-      <div class="card-surface rounded-2xl p-4">
-        <h3 class="font-bold text-sm text-[#13311c] mb-3">Credit Aging Summary</h3>
-        <div class="grid grid-cols-3 gap-2 text-center">
-          <div class="bg-emerald-50 p-2.5 rounded-xl">
-            <div class="text-[10px] font-bold text-emerald-800">0–14 DAYS</div>
-            <div id="aging-0-14" class="text-sm font-extrabold text-emerald-950 mt-1">Rs. 0</div>
-          </div>
-          <div class="bg-amber-50 p-2.5 rounded-xl">
-            <div class="text-[10px] font-bold text-amber-800">15–30 DAYS</div>
-            <div id="aging-15-30" class="text-sm font-extrabold text-amber-950 mt-1">Rs. 0</div>
-          </div>
-          <div class="bg-red-50 p-2.5 rounded-xl">
-            <div class="text-[10px] font-bold text-red-800">30+ DAYS</div>
-            <div id="aging-30-plus" class="text-sm font-extrabold text-red-950 mt-1">Rs. 0</div>
-          </div>
         </div>
       </div>
 
@@ -206,7 +172,7 @@
         <div class="flex items-center justify-between">
           <div>
             <h3 class="font-bold text-sm text-[#13311c]">Data Backup & Transfer</h3>
-            <p class="text-[11px] text-stone-500">Export JSON backup between Anuradhapura & Colombo</p>
+            <p class="text-[11px] text-stone-500">Export/Import JSON backup across devices</p>
           </div>
           <div class="flex gap-2">
             <button onclick="exportData()" class="bg-[#13311c] text-white text-xs font-semibold px-3 py-1.5 rounded-lg">Export</button>
@@ -218,24 +184,23 @@
       </div>
     </section>
 
-    <!-- TAB 2: SFA PDF TOP-RIGHT QR PRINT -->
+    <!-- TAB 2: SFA PDF + TOP-RIGHT QR PRINT -->
     <section id="tab-bills" class="hidden space-y-4">
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-xl font-extrabold text-[#13311c]">SFA Invoice + Top-Right QR</h2>
-          <p class="text-xs text-stone-500">Keeps exact SFA invoice details & adds QR at Top-Right</p>
+          <p class="text-xs text-stone-500">Upload SFA PDF · Print with QR at Top-Right · Log Credit</p>
         </div>
-        <button onclick="openScannerModal()" class="brand-gold text-[#13311c] font-bold text-xs px-3 py-2 rounded-lg">
-          📷 QR Settle
+        <button onclick="switchTab('credit')" class="brand-gold text-[#13311c] font-bold text-xs px-3 py-2 rounded-lg">
+          Credit Tab →
         </button>
       </div>
 
-      <!-- Upload SFA PDF Box -->
       <div class="card-surface rounded-2xl p-4 space-y-3 border-2 border-dashed border-[#13311c]/40">
         <div class="flex items-center justify-between gap-2">
           <div>
             <h3 class="font-bold text-sm text-[#13311c]">📄 Upload Freelands SFA / Direct Sales PDF</h3>
-            <p class="text-[11px] text-stone-500">Each PDF page renders with full details + crisp QR on Top-Right</p>
+            <p class="text-[11px] text-stone-500">Exact invoice details preserved + clear QR on Top-Right</p>
           </div>
           <label class="brand-green text-white text-xs font-bold px-3 py-2.5 rounded-xl cursor-pointer shrink-0">
             Upload PDF
@@ -245,18 +210,17 @@
 
         <div id="pdf-progress" class="text-xs font-semibold text-[#13311c] hidden"></div>
 
-        <!-- QR Size & Credit Tracking Controls -->
         <div id="pdf-controls" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-stone-200">
           <div>
-            <label class="text-[11px] font-semibold text-stone-600">QR Size (px)</label>
+            <label class="text-[11px] font-semibold text-stone-600">QR Size</label>
             <select id="qr-size-select" onchange="rerenderAllPageQRs()" class="w-full mt-1 p-2 rounded-lg border border-stone-300 text-xs bg-white">
-              <option value="88">Compact (88px)</option>
-              <option value="110" selected>Clear Scan (110px)</option>
-              <option value="132">Extra Bold (132px)</option>
+              <option value="96">Medium (96px)</option>
+              <option value="120" selected>High Contrast Scan (120px)</option>
+              <option value="144">Large (144px)</option>
             </select>
           </div>
           <div>
-            <label class="text-[11px] font-semibold text-stone-600">Route for Credit Log</label>
+            <label class="text-[11px] font-semibold text-stone-600">Territory & Route</label>
             <select id="pdf-route-select" class="w-full mt-1 p-2 rounded-lg border border-stone-300 text-xs bg-white"></select>
           </div>
           <div class="flex items-end">
@@ -267,17 +231,170 @@
         </div>
       </div>
 
-      <!-- Rendered SFA Pages List -->
       <div id="sfa-pages-container" class="space-y-4"></div>
+    </section>
 
-      <!-- Saved Bills Credit Log -->
+    <!-- TAB 3: CREDIT (QR SCANNER, MORNING DISPATCH, EVENING SETTLEMENT, SHOP/ROUTE/TERRITORY CREDIT) -->
+    <section id="tab-credit" class="hidden space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 class="text-xl font-extrabold text-[#13311c]">Credit Control & QR Scanner</h2>
+          <p class="text-xs text-stone-500">Morning Dispatch Scan · Evening Settlement · Territory, Route & Shop Credit</p>
+        </div>
+      </div>
+
+      <!-- QR Scanner Box (Camera + Photo + Manual Bill Lookup) -->
+      <div class="card-surface rounded-2xl p-4 space-y-3 border-2 border-[#13311c]/20">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h3 class="font-extrabold text-sm text-[#13311c]">📷 QR Bill Scanner (Morning Dispatch & Evening Collection)</h3>
+          <div class="flex gap-2">
+            <button onclick="startCameraScan()" class="brand-green text-white text-xs font-bold px-3 py-1.5 rounded-lg">Start Camera</button>
+            <button onclick="stopCameraScan()" class="bg-stone-200 text-stone-800 text-xs font-bold px-3 py-1.5 rounded-lg">Stop</button>
+            <label class="brand-gold text-[#13311c] text-xs font-bold px-3 py-1.5 rounded-lg cursor-pointer">
+              Scan Photo
+              <input type="file" accept="image/*" capture="environment" onchange="scanQrImageFile(event)" class="hidden" />
+            </label>
+          </div>
+        </div>
+
+        <div id="qr-scanner-status" class="text-xs text-stone-600">Tap "Start Camera" to scan bill QR, or pick/search a bill below.</div>
+        <div id="qr-reader" class="w-full max-w-sm mx-auto rounded-xl overflow-hidden bg-black"></div>
+
+        <!-- Quick Select / Type Bill ID -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+          <select id="quick-bill-select" onchange="openBillSettlement(this.value)" class="p-2.5 rounded-xl border border-stone-300 text-xs bg-white">
+            <option value="">-- Select Bill to Scan / Settle --</option>
+          </select>
+          <div class="flex gap-2">
+            <input id="manual-qr-code" type="text" placeholder="Type/Paste QR Code (e.g. GD-1001)" class="flex-1 p-2.5 rounded-xl border border-stone-300 text-xs bg-white" />
+            <button onclick="openBillSettlement(document.getElementById('manual-qr-code').value.trim())" class="bg-[#13311c] text-white text-xs font-bold px-3 rounded-xl">Load</button>
+          </div>
+        </div>
+
+        <!-- Scanned / Selected Bill Action Card -->
+        <div id="active-bill-card" class="hidden bg-[#f9f8f4] border-2 border-[#13311c] rounded-2xl p-4 space-y-3">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div id="ab-code" class="font-extrabold text-base text-[#13311c]"></div>
+              <div id="ab-shop-route" class="text-xs font-semibold text-stone-700"></div>
+              <div id="ab-status" class="text-[11px] font-bold text-amber-800 mt-0.5"></div>
+            </div>
+            <div class="text-right">
+              <div class="text-[10px] text-stone-500 uppercase">Current Balance</div>
+              <div id="ab-balance" class="text-lg font-extrabold text-red-700"></div>
+              <div id="ab-breakdown" class="text-[11px] text-stone-600"></div>
+            </div>
+          </div>
+
+          <!-- Morning Dispatch / Carrier Assignment -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-stone-200">
+            <div>
+              <label class="text-[11px] font-semibold text-stone-600">Morning Carrier (Rep / Cash)</label>
+              <select id="ab-carrier" onchange="updateBillCarrier(this.value)" class="w-full mt-1 p-2 rounded-lg border border-stone-300 text-xs bg-white">
+                <option value="">-- Not Assigned --</option>
+                <option value="Rep">Rep (Credit / Route)</option>
+                <option value="Cash Collector">Cash Collector (Credit / Route)</option>
+              </select>
+            </div>
+            <div class="flex items-end">
+              <button onclick="markMorningDispatched()" class="w-full bg-stone-800 text-white text-xs font-bold py-2 px-3 rounded-lg">
+                ✓ Mark Morning Dispatched
+              </button>
+            </div>
+          </div>
+
+          <!-- Evening Payment Entry: Full / Partial / Zero -->
+          <div class="space-y-2 pt-2 border-t border-stone-200">
+            <label class="text-xs font-bold text-[#13311c] block">Evening / Return Payment Entry:</label>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <button onclick="settleFullAmount()" class="bg-emerald-700 text-white font-bold py-2.5 px-3 rounded-xl text-xs">
+                ✓ Full Paid (Clear Balance)
+              </button>
+              <div class="flex gap-1.5">
+                <input id="ab-partial-input" type="number" placeholder="Partial Rs." class="w-full p-2 rounded-xl border border-stone-300 text-xs bg-white" />
+                <button onclick="settlePartialAmount()" class="brand-gold text-[#13311c] font-bold px-3 rounded-xl text-xs shrink-0">
+                  Save Partial
+                </button>
+              </div>
+              <button onclick="settleZeroPayment()" class="bg-amber-100 text-amber-900 border border-amber-300 font-bold py-2.5 px-3 rounded-xl text-xs">
+                No Payment (Keep Full Due)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Daily Credit Entry Form -->
       <div class="card-surface rounded-2xl p-4 space-y-3">
-        <h3 class="font-bold text-sm text-[#13311c]">Logged Credit Bills (For Evening QR Scan)</h3>
-        <div id="bills-list" class="space-y-2"></div>
+        <h3 class="font-bold text-sm text-[#13311c]">+ Add Daily Credit / Dispatch Bill</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+          <select id="new-cr-territory" onchange="populateCreditRouteOptions()" class="p-2.5 rounded-xl border border-stone-300 text-xs bg-white">
+            <option value="Anuradhapura">Anuradhapura Territory</option>
+            <option value="Mihintale">Mihintale Territory</option>
+          </select>
+          <select id="new-cr-route" class="p-2.5 rounded-xl border border-stone-300 text-xs bg-white"></select>
+          <input id="new-cr-shop" type="text" placeholder="Shop Name (e.g. Indrani Stores)" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
+          <input id="new-cr-amount" type="number" placeholder="Credit Amount (Rs.)" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <input id="new-cr-id" type="text" placeholder="Bill/QR ID (optional, auto if blank)" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
+          <select id="new-cr-carrier" class="p-2.5 rounded-xl border border-stone-300 text-xs bg-white">
+            <option value="Rep">Rep</option>
+            <option value="Cash Collector">Cash Collector</option>
+          </select>
+          <button onclick="addCreditBillManual()" class="brand-green text-white font-bold py-2.5 rounded-xl text-xs">+ Add Credit Bill</button>
+        </div>
+      </div>
+
+      <!-- Territory, Route & Shop Credit Explorer -->
+      <div class="card-surface rounded-2xl p-4 space-y-3">
+        <h3 class="font-extrabold text-sm text-[#13311c]">📊 Territory, Route & Shop Credit Breakdown</h3>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div>
+            <label class="text-[11px] font-semibold text-stone-600">Select Territory</label>
+            <select id="filter-territory" onchange="onFilterTerritoryChange()" class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-xs bg-white">
+              <option value="ALL">Both Territories (Anuradhapura + Mihintale)</option>
+              <option value="Anuradhapura">Anuradhapura Territory (6 Routes)</option>
+              <option value="Mihintale">Mihintale Territory (6 Routes)</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-stone-600">Select Single Route (12 Routes)</label>
+            <select id="filter-route" onchange="renderCreditExplorer()" class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-xs bg-white">
+              <option value="ALL">All Routes in Selection</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-stone-600">Search Shop Name</label>
+            <input id="filter-shop-search" type="text" oninput="renderCreditExplorer()" placeholder="Type shop name..." class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-xs bg-white" />
+          </div>
+        </div>
+
+        <!-- Selected Territory / Route Summary Banner -->
+        <div id="credit-scope-summary" class="brand-green text-white rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div id="scope-title" class="text-xs font-bold text-emerald-200">Selected Scope Credit</div>
+            <div id="scope-meta" class="text-[11px] text-emerald-100">0 open bills · 0 shops with credit</div>
+          </div>
+          <div id="scope-total" class="text-xl font-extrabold">Rs. 0</div>
+        </div>
+
+        <!-- Shop-by-Shop Credit Summary (Shows Open Bill Count & Total per Shop) -->
+        <div>
+          <h4 class="text-xs font-bold text-[#13311c] mb-2">Shop Credit Summary (Open Bills & Balance per Shop)</h4>
+          <div id="shop-credit-summary" class="space-y-2"></div>
+        </div>
+
+        <!-- Individual Bills List -->
+        <div>
+          <h4 class="text-xs font-bold text-[#13311c] mb-2">Credit Bills List (Tap "QR / Settle" to Update)</h4>
+          <div id="credit-bills-list" class="space-y-2"></div>
+        </div>
       </div>
     </section>
 
-    <!-- TAB 3: 12 ROUTES & SHOPS -->
+    <!-- TAB 4: 12 ROUTES & SHOPS -->
     <section id="tab-shops" class="hidden space-y-4">
       <h2 class="text-xl font-extrabold text-[#13311c]">12 Routes & Shop Directory</h2>
       <div class="card-surface rounded-2xl p-4 space-y-3">
@@ -289,15 +406,15 @@
           </div>
           <div>
             <label class="text-xs font-semibold text-stone-600">Shop Name</label>
-            <input id="shop-name" type="text" placeholder="e.g. New Lanka Stores" class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-sm" />
+            <input id="shop-name" type="text" placeholder="e.g. Indrani Stores" class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-sm" />
           </div>
           <div>
-            <label class="text-xs font-semibold text-stone-600">Owner / Phone</label>
+            <label class="text-xs font-semibold text-stone-600">Phone</label>
             <input id="shop-phone" type="text" placeholder="071XXXXXXX" class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-sm" />
           </div>
           <div>
             <label class="text-xs font-semibold text-stone-600">Credit Limit (Rs.)</label>
-            <input id="shop-limit" type="number" value="100000" class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-sm" />
+            <input id="shop-limit" type="number" value="150000" class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-sm" />
           </div>
         </div>
         <button onclick="addShop()" class="w-full brand-green text-white font-bold py-2.5 rounded-xl text-sm">+ Add Shop to Route</button>
@@ -305,29 +422,22 @@
       <div id="shops-list" class="space-y-2"></div>
     </section>
 
-    <!-- TAB 4: CHEQUES & ALERTS -->
-    <section id="tab-cheques" class="hidden space-y-4">
-      <div>
-        <h2 class="text-xl font-extrabold text-[#13311c]">Cheque Register & Alerts</h2>
-        <p class="text-xs text-stone-500">Alert Numbers: +94711980085 / +94781980085</p>
-      </div>
+    <!-- TAB 5: CHEQUES & PROFIT -->
+    <section id="tab-profit" class="hidden space-y-4">
+      <h2 class="text-xl font-extrabold text-[#13311c]">Cheques & Monthly Profit</h2>
       <div class="card-surface rounded-2xl p-4 space-y-3">
-        <h3 class="font-bold text-sm text-[#13311c]">Record Received Cheque</h3>
+        <h3 class="font-bold text-sm text-[#13311c]">Cheque Register (+94711980085 / +94781980085)</h3>
         <div class="grid grid-cols-2 gap-2">
-          <select id="chq-shop" class="p-2.5 rounded-xl border border-stone-300 text-xs bg-white col-span-2"></select>
+          <input id="chq-shop-name" type="text" placeholder="Shop Name" class="p-2.5 rounded-xl border border-stone-300 text-xs col-span-2" />
           <input id="chq-number" type="text" placeholder="Cheque No." class="p-2.5 rounded-xl border border-stone-300 text-xs" />
-          <input id="chq-bank" type="text" placeholder="Bank Name" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
+          <input id="chq-bank" type="text" placeholder="Bank" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
           <input id="chq-amount" type="number" placeholder="Amount (Rs.)" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
           <input id="chq-date" type="date" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
         </div>
         <button onclick="addCheque()" class="w-full brand-green text-white font-bold py-2.5 rounded-xl text-sm">+ Save Cheque</button>
+        <div id="cheques-list" class="space-y-2 pt-2"></div>
       </div>
-      <div id="cheques-list" class="space-y-2"></div>
-    </section>
 
-    <!-- TAB 5: INVENTORY & MONTHLY PROFIT -->
-    <section id="tab-profit" class="hidden space-y-4">
-      <h2 class="text-xl font-extrabold text-[#13311c]">Inventory & Monthly Profit</h2>
       <div class="card-surface rounded-2xl p-4 space-y-3">
         <h3 class="font-bold text-sm text-[#13311c]">Monthly Net Profit Estimator</h3>
         <div class="grid grid-cols-2 gap-3">
@@ -340,7 +450,7 @@
             <input id="prof-cogs" type="number" oninput="calcProfit()" class="w-full mt-1 p-2 rounded-xl border border-stone-300 text-sm" />
           </div>
           <div>
-            <label class="text-xs font-semibold text-stone-600">Fuel & Van Expenses</label>
+            <label class="text-xs font-semibold text-stone-600">Fuel & Van</label>
             <input id="prof-fuel" type="number" value="45000" oninput="calcProfit()" class="w-full mt-1 p-2 rounded-xl border border-stone-300 text-sm" />
           </div>
           <div>
@@ -353,21 +463,11 @@
           <span id="prof-net" class="text-2xl font-extrabold">Rs. 0</span>
         </div>
       </div>
-
-      <div class="card-surface rounded-2xl p-4 space-y-3">
-        <h3 class="font-bold text-sm text-[#13311c]">Freelands Stock Balance</h3>
-        <div class="grid grid-cols-3 gap-2">
-          <input id="stk-name" type="text" placeholder="Product Name" class="p-2 rounded-lg border border-stone-300 text-xs col-span-2" />
-          <input id="stk-qty" type="number" placeholder="Qty" class="p-2 rounded-lg border border-stone-300 text-xs" />
-        </div>
-        <button onclick="addStock()" class="w-full bg-stone-800 text-white font-bold py-2 rounded-xl text-xs">+ Update Stock Item</button>
-        <div id="stock-list" class="space-y-2 pt-2"></div>
-      </div>
     </section>
 
   </main>
 
-  <!-- Dedicated Print Stage (Only Shown During Print) -->
+  <!-- Dedicated Print Stage -->
   <div id="print-stage" class="hidden"></div>
 
   <!-- Bottom Navigation Bar -->
@@ -378,34 +478,16 @@
     <button onclick="switchTab('bills')" id="nav-bills" class="text-stone-500 flex flex-col items-center text-[11px]">
       <span class="text-lg">🧾</span><span>SFA + QR</span>
     </button>
+    <button onclick="switchTab('credit')" id="nav-credit" class="text-stone-500 flex flex-col items-center text-[11px]">
+      <span class="text-lg">💳</span><span>Credit</span>
+    </button>
     <button onclick="switchTab('shops')" id="nav-shops" class="text-stone-500 flex flex-col items-center text-[11px]">
       <span class="text-lg">🏪</span><span>12 Routes</span>
     </button>
-    <button onclick="switchTab('cheques')" id="nav-cheques" class="text-stone-500 flex flex-col items-center text-[11px]">
-      <span class="text-lg">🏦</span><span>Cheques</span>
-    </button>
     <button onclick="switchTab('profit')" id="nav-profit" class="text-stone-500 flex flex-col items-center text-[11px]">
-      <span class="text-lg">📦</span><span>Stock/Profit</span>
+      <span class="text-lg">🏦</span><span>Cheques/Profit</span>
     </button>
   </nav>
-
-  <!-- EVENING QR SCANNER MODAL -->
-  <div id="scanner-modal" class="fixed inset-0 bg-black/75 z-50 hidden flex items-center justify-center p-4 no-print">
-    <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-4">
-      <div class="flex items-center justify-between">
-        <h3 class="font-extrabold text-base text-[#13311c]">Evening QR Settlement</h3>
-        <button onclick="closeScannerModal()" class="text-stone-500 font-bold text-lg">✕</button>
-      </div>
-      <div id="qr-reader" class="w-full rounded-xl overflow-hidden bg-black"></div>
-      <div class="text-xs text-stone-500 text-center">Or select Bill ID manually below:</div>
-      <select id="manual-settle-bill" onchange="loadSettleBill(this.value)" class="w-full p-2.5 rounded-xl border border-stone-300 text-sm"></select>
-      <div id="settle-box" class="hidden bg-stone-100 p-3 rounded-xl space-y-2">
-        <div id="settle-info" class="text-xs font-bold text-[#13311c]"></div>
-        <input id="settle-amount" type="number" placeholder="Enter Paid Amount Today (Rs.)" class="w-full p-2.5 rounded-xl border border-stone-300 text-sm bg-white" />
-        <button onclick="applySettlement()" class="w-full brand-green text-white font-bold py-2.5 rounded-xl text-sm">✓ Update Balance</button>
-      </div>
-    </div>
-  </div>
 
   <script>
     if (window.pdfjsLib) {
@@ -413,20 +495,26 @@
         'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
 
-    const ROUTES = [
-      "Anuradhapura - Route 01 (Town)",
-      "Anuradhapura - Route 02 (New Town)",
-      "Anuradhapura - Route 03 (Nochchiyagama)",
-      "Anuradhapura - Route 04 (Thalawa)",
-      "Anuradhapura - Route 05 (Eppawala)",
-      "Anuradhapura - Route 06 (Kekirawa)",
-      "Mihintale - Route 07 (Mihintale Town)",
-      "Mihintale - Route 08 (Rambewa)",
-      "Mihintale - Route 09 (Kahatagasdigiliya)",
-      "Mihintale - Route 10 (Horowpothana)",
-      "Mihintale - Route 11 (Galenbindunuwewa)",
-      "Mihintale - Route 12 (Thirappane)"
-    ];
+    const TERRITORY_ROUTES = {
+      Anuradhapura: [
+        "Anuradhapura - Route 01 (Town)",
+        "Anuradhapura - Route 02 (New Town)",
+        "Anuradhapura - Route 03 (Nochchiyagama)",
+        "Anuradhapura - Route 04 (Thalawa)",
+        "Anuradhapura - Route 05 (Eppawala)",
+        "Anuradhapura - Route 06 (Kekirawa)"
+      ],
+      Mihintale: [
+        "Mihintale - Route 07 (Mihintale Town)",
+        "Mihintale - Route 08 (Rambewa)",
+        "Mihintale - Route 09 (Kahatagasdigiliya)",
+        "Mihintale - Route 10 (Horowpothana)",
+        "Mihintale - Route 11 (Galenbindunuwewa)",
+        "Mihintale - Route 12 (Thirappane)"
+      ]
+    };
+
+    const ALL_ROUTES = [...TERRITORY_ROUTES.Anuradhapura, ...TERRITORY_ROUTES.Mihintale];
 
     function daysAgo(n) {
       const d = new Date();
@@ -436,32 +524,31 @@
 
     const defaultData = {
       shops: [
-        { id: "S1", route: ROUTES[0], name: "Rajarata Super", phone: "0712345678", limit: 150000 },
-        { id: "S2", route: ROUTES[3], name: "Thalawa Stores", phone: "0771234567", limit: 100000 },
-        { id: "S3", route: ROUTES[6], name: "Mihintale Bakers & Mart", phone: "0719876543", limit: 200000 },
-        { id: "S4", route: ROUTES[8], name: "Digiliya Trade Center", phone: "0784561230", limit: 120000 }
+        { id: "S1", route: TERRITORY_ROUTES.Anuradhapura[2], name: "Indrani Stores", phone: "0714586270", limit: 150000 },
+        { id: "S2", route: TERRITORY_ROUTES.Anuradhapura[3], name: "Thalawa Stores", phone: "0771234567", limit: 120000 },
+        { id: "S3", route: TERRITORY_ROUTES.Mihintale[0], name: "Mihintale Bakers & Mart", phone: "0719876543", limit: 200000 },
+        { id: "S4", route: TERRITORY_ROUTES.Mihintale[2], name: "Digiliya Trade Center", phone: "0784561230", limit: 150000 }
       ],
       bills: [
-        { id: "GD-1001", shopId: "S1", date: daysAgo(3), type: "Credit", amount: 45000, paid: 15000, items: "SFA Invoice #1001" },
-        { id: "GD-1002", shopId: "S2", date: daysAgo(18), type: "Credit", amount: 68000, paid: 20000, items: "SFA Invoice #1002" },
-        { id: "GD-1003", shopId: "S3", date: daysAgo(2), type: "Credit", amount: 112000, paid: 32000, items: "SFA Invoice #1003" }
+        { id: "GD-1001", shopName: "Indrani Stores", route: TERRITORY_ROUTES.Anuradhapura[2], date: daysAgo(2), amount: 8650, paid: 0, carrier: "Rep", dispatchedMorning: true, lastAction: "Morning Dispatched" },
+        { id: "GD-1002", shopName: "Indrani Stores", route: TERRITORY_ROUTES.Anuradhapura[2], date: daysAgo(6), amount: 14500, paid: 4500, carrier: "Rep", dispatchedMorning: true, lastAction: "Partial Paid Rs. 4,500" },
+        { id: "GD-1003", shopName: "Mihintale Bakers & Mart", route: TERRITORY_ROUTES.Mihintale[0], date: daysAgo(1), amount: 42000, paid: 0, carrier: "Cash Collector", dispatchedMorning: true, lastAction: "Morning Dispatched" },
+        { id: "GD-1004", shopName: "Digiliya Trade Center", route: TERRITORY_ROUTES.Mihintale[2], date: daysAgo(4), amount: 28000, paid: 0, carrier: "Rep", dispatchedMorning: false, lastAction: "Credit Logged" }
       ],
       cheques: [
-        { id: "C1", shopId: "S1", number: "458921", bank: "BOC Anuradhapura", amount: 24400, date: daysAgo(0), status: "Pending" }
-      ],
-      stock: [
-        { name: "Chili Powder 100g (Freelands)", qty: 450 },
-        { name: "Curry Powder 100g (Freelands)", qty: 380 }
+        { id: "C1", shopName: "Indrani Stores", number: "458921", bank: "BOC", amount: 24400, date: daysAgo(0), status: "Pending" }
       ]
     };
 
-    let db = JSON.parse(localStorage.getItem('gd_erp_db')) || defaultData;
+    let db = JSON.parse(localStorage.getItem('gd_credit_erp_v1')) || defaultData;
     let renderedPages = [];
-    let html5QrCode = null;
-    let activeSettleBillId = null;
+    let html5QrScanner = null;
+    let currentScannedBillId = null;
+    let collectedTodayAmount = Number(localStorage.getItem('gd_collected_today_' + daysAgo(0)) || 0);
 
     function saveDB() {
-      localStorage.setItem('gd_erp_db', JSON.stringify(db));
+      localStorage.setItem('gd_credit_erp_v1', JSON.stringify(db));
+      localStorage.setItem('gd_collected_today_' + daysAgo(0), String(collectedTodayAmount));
       refreshAll();
     }
 
@@ -469,8 +556,12 @@
       return "Rs. " + Number(num || 0).toLocaleString('en-LK');
     }
 
+    function getTerritoryFromRoute(route) {
+      return (route || "").startsWith("Mihintale") ? "Mihintale" : "Anuradhapura";
+    }
+
     function switchTab(tab) {
-      ['dashboard', 'bills', 'shops', 'cheques', 'profit'].forEach(t => {
+      ['dashboard', 'bills', 'credit', 'shops', 'profit'].forEach(t => {
         document.getElementById('tab-' + t).classList.add('hidden');
         document.getElementById('nav-' + t).classList.remove('text-[#13311c]', 'font-bold');
         document.getElementById('nav-' + t).classList.add('text-stone-500');
@@ -478,25 +569,44 @@
       document.getElementById('tab-' + tab).classList.remove('hidden');
       document.getElementById('nav-' + tab).classList.add('text-[#13311c]', 'font-bold');
       document.getElementById('nav-' + tab).classList.remove('text-stone-500');
+
+      if (tab !== 'credit') {
+        stopCameraScan();
+      }
     }
 
     function initSelects() {
-      const routeOpts = ROUTES.map(r => `<option value="${r}">${r}</option>`).join('');
+      const allOpts = ALL_ROUTES.map(r => `<option value="${r}">${r}</option>`).join('');
       const shopRoute = document.getElementById('shop-route');
       const pdfRoute = document.getElementById('pdf-route-select');
-      if (shopRoute) shopRoute.innerHTML = routeOpts;
-      if (pdfRoute) pdfRoute.innerHTML = routeOpts;
-      updateShopSelects();
+      if (shopRoute) shopRoute.innerHTML = allOpts;
+      if (pdfRoute) pdfRoute.innerHTML = allOpts;
+      populateCreditRouteOptions();
+      onFilterTerritoryChange();
     }
 
-    function updateShopSelects() {
-      const opts = db.shops
-        .map(s => `<option value="${s.id}">${s.name} (${s.route.split(' - ')[0]})</option>`)
-        .join('');
-      const chqShop = document.getElementById('chq-shop');
-      if (chqShop) chqShop.innerHTML = opts;
+    function populateCreditRouteOptions() {
+      const terr = document.getElementById('new-cr-territory')?.value || "Anuradhapura";
+      const list = TERRITORY_ROUTES[terr] || TERRITORY_ROUTES.Anuradhapura;
+      const sel = document.getElementById('new-cr-route');
+      if (sel) sel.innerHTML = list.map(r => `<option value="${r}">${r}</option>`).join('');
     }
 
+    function onFilterTerritoryChange() {
+      const terr = document.getElementById('filter-territory')?.value || "ALL";
+      const routeSel = document.getElementById('filter-route');
+      if (!routeSel) return;
+
+      let routes = ALL_ROUTES;
+      if (terr === "Anuradhapura") routes = TERRITORY_ROUTES.Anuradhapura;
+      if (terr === "Mihintale") routes = TERRITORY_ROUTES.Mihintale;
+
+      routeSel.innerHTML = `<option value="ALL">All Routes (${routes.length})</option>` +
+        routes.map(r => `<option value="${r}">${r}</option>`).join('');
+      renderCreditExplorer();
+    }
+
+    /* ---------------- PDF + TOP-RIGHT QR PRINT ---------------- */
     async function handleSfaPdf(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -513,20 +623,22 @@
         const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
 
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-          prog.innerText = `Rendering invoice page ${pageNum} of ${pdf.numPages} with Top-Right QR...`;
-
+          prog.innerText = `Rendering page ${pageNum} of ${pdf.numPages} with Top-Right QR...`;
           const page = await pdf.getPage(pageNum);
           const textContent = await page.getTextContent();
           const pageText = textContent.items.map(i => i.str).join(' ');
 
-          // Try detecting invoice number and amount from PDF text
-          const invMatch = pageText.match(/(?:INV|BILL|NO|#)\s*[:\-]?\s*([A-Z0-9\-]+)/i);
-          const detectedCode = invMatch ? invMatch[1].slice(0, 16) : `SFA-P${pageNum}`;
+          const invMatch = pageText.match(/(?:Invoice\s*No\.?|INV|BILL)\s*[:\-]?\s*([A-Z0-9_\-]+)/i);
+          const codeBase = invMatch ? invMatch[1].replace(/[^A-Z0-9_\-]/gi, '').slice(0, 20) : `SFA-${pageNum}`;
+          const qrCodeValue = `GD-${codeBase}-P${pageNum}`;
 
           const nums = (pageText.match(/\b\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?\b/g) || [])
             .map(n => Number(n.replace(/,/g, '')))
             .filter(n => n >= 100 && n <= 10000000);
           const detectedAmount = nums.length ? nums[nums.length - 1] : 0;
+
+          const shopMatch = pageText.match(/Invoiced\s*To\s*:\s*([A-Za-z0-9\s&.\-]+)/i);
+          const detectedShop = shopMatch ? shopMatch[1].trim().slice(0, 32) : `Shop Page ${pageNum}`;
 
           const viewport = page.getViewport({ scale: 1.6 });
           const canvas = document.createElement('canvas');
@@ -535,28 +647,25 @@
           const ctx = canvas.getContext('2d');
           await page.render({ canvasContext: ctx, viewport }).promise;
 
-          const imgSrc = canvas.toDataURL('image/png');
-          const billCode = `GD-${detectedCode}-${pageNum}`;
-
           renderedPages.push({
             pageNum,
-            imgSrc,
-            billCode,
-            detectedAmount
+            imgSrc: canvas.toDataURL('image/png'),
+            qrCodeValue,
+            detectedAmount,
+            detectedShop
           });
         }
 
-        prog.innerText = `Ready: ${renderedPages.length} SFA invoice page(s) with Top-Right QR.`;
+        prog.innerText = `Ready: ${renderedPages.length} SFA invoice page(s) rendered with Top-Right QR.`;
         document.getElementById('pdf-controls').classList.remove('hidden');
         renderSfaCards();
       } catch (err) {
-        prog.innerText = "Error reading PDF. Please try another PDF file.";
+        prog.innerText = "Error reading PDF.";
       }
     }
 
     function getQrPx() {
-      const el = document.getElementById('qr-size-select');
-      return el ? Number(el.value || 110) : 110;
+      return Number(document.getElementById('qr-size-select')?.value || 120);
     }
 
     function renderSfaCards() {
@@ -565,12 +674,16 @@
 
       container.innerHTML = renderedPages.map((p, idx) => `
         <div class="card-surface rounded-2xl p-3 space-y-3">
-          <div class="flex items-center justify-between gap-2">
-            <div class="text-xs font-extrabold text-[#13311c]">Page ${p.pageNum} · QR: ${p.billCode}</div>
-            <div class="flex items-center gap-2">
-              <input type="number" id="amt-${idx}" value="${p.detectedAmount}" placeholder="Credit Rs." class="w-24 p-1.5 rounded-lg border border-stone-300 text-xs" />
-              <button onclick="logCreditForPage(${idx})" class="bg-emerald-800 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg">
-                + Credit
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <div class="text-xs font-extrabold text-[#13311c]">Page ${p.pageNum} · QR: ${p.qrCodeValue}</div>
+              <div class="text-[11px] text-stone-500">Detected: ${p.detectedShop}</div>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <input type="text" id="pdf-shop-${idx}" value="${p.detectedShop}" placeholder="Shop Name" class="w-32 p-1.5 rounded-lg border border-stone-300 text-xs" />
+              <input type="number" id="pdf-amt-${idx}" value="${p.detectedAmount}" placeholder="Rs." class="w-24 p-1.5 rounded-lg border border-stone-300 text-xs" />
+              <button onclick="saveSfaPageToCredit(${idx})" class="bg-emerald-800 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg">
+                + Credit Log
               </button>
               <button onclick="printSinglePage(${idx})" class="brand-green text-white text-xs font-bold px-3 py-1.5 rounded-lg">
                 🖨️ Print
@@ -578,12 +691,11 @@
             </div>
           </div>
 
-          <!-- Exact SFA Invoice with Top-Right QR -->
           <div id="sheet-card-${idx}" class="invoice-sheet border border-stone-300 rounded-lg">
             <img src="${p.imgSrc}" alt="SFA Invoice Page ${p.pageNum}" />
             <div class="qr-top-right" style="max-width: ${qrSize + 18}px;">
               <div id="qr-box-${idx}"></div>
-              <div class="qr-caption">${p.billCode}</div>
+              <div class="qr-caption">${p.qrCodeValue}</div>
             </div>
           </div>
         </div>
@@ -601,12 +713,44 @@
         if (badge) badge.style.maxWidth = `${qrSize + 18}px`;
         box.innerHTML = "";
         new QRCode(box, {
-          text: p.billCode,
+          text: p.qrCodeValue,
           width: qrSize,
           height: qrSize,
           correctLevel: QRCode.CorrectLevel.H
         });
       });
+    }
+
+    function saveSfaPageToCredit(idx) {
+      const p = renderedPages[idx];
+      if (!p) return;
+      const shopName = (document.getElementById(`pdf-shop-${idx}`)?.value || p.detectedShop || "Shop").trim();
+      const amount = Number(document.getElementById(`pdf-amt-${idx}`)?.value || p.detectedAmount || 0);
+      const route = document.getElementById('pdf-route-select')?.value || ALL_ROUTES[0];
+
+      if (amount <= 0) return alert("Enter bill amount (Rs.) to log credit.");
+
+      const existing = db.bills.find(b => b.id === p.qrCodeValue);
+      if (existing) {
+        existing.shopName = shopName;
+        existing.route = route;
+        existing.amount = amount;
+        existing.lastAction = "Updated from SFA PDF";
+      } else {
+        db.bills.unshift({
+          id: p.qrCodeValue,
+          shopName,
+          route,
+          date: daysAgo(0),
+          amount,
+          paid: 0,
+          carrier: "Rep",
+          dispatchedMorning: true,
+          lastAction: "Added from SFA PDF"
+        });
+      }
+      saveDB();
+      alert(`Saved ${p.qrCodeValue} (${shopName} - ${fmt(amount)}) to Credit!`);
     }
 
     function printSinglePage(idx) {
@@ -616,13 +760,12 @@
 
       stage.innerHTML = "";
       const clone = sheet.cloneNode(true);
-      // Re-draw canvas/QR cleanly inside clone
       const qrSize = getQrPx();
       const cloneQrBox = clone.querySelector(`#qr-box-${idx}`);
       if (cloneQrBox && renderedPages[idx]) {
         cloneQrBox.innerHTML = "";
         new QRCode(cloneQrBox, {
-          text: renderedPages[idx].billCode,
+          text: renderedPages[idx].qrCodeValue,
           width: qrSize,
           height: qrSize,
           correctLevel: QRCode.CorrectLevel.H
@@ -643,7 +786,6 @@
 
       stage.innerHTML = "";
       const qrSize = getQrPx();
-
       renderedPages.forEach((p, idx) => {
         const orig = document.getElementById(`sheet-card-${idx}`);
         if (!orig) return;
@@ -652,7 +794,7 @@
         if (cloneQrBox) {
           cloneQrBox.innerHTML = "";
           new QRCode(cloneQrBox, {
-            text: p.billCode,
+            text: p.qrCodeValue,
             width: qrSize,
             height: qrSize,
             correctLevel: QRCode.CorrectLevel.H
@@ -669,113 +811,278 @@
       }, 500);
     }
 
-    function logCreditForPage(idx) {
-      const p = renderedPages[idx];
-      if (!p) return;
-      const amtInput = document.getElementById(`amt-${idx}`);
-      const amount = Number(amtInput ? amtInput.value : p.detectedAmount || 0);
-      if (amount <= 0) return alert("Enter bill credit amount (Rs.) first.");
-
-      const route = document.getElementById('pdf-route-select').value || ROUTES[0];
-      let shop = db.shops.find(s => s.route === route);
-      if (!shop) {
-        shop = { id: "S_" + route.slice(0, 6), route, name: route.split(' - ')[1] || "Route Shop", phone: "", limit: 200000 };
-        db.shops.push(shop);
+    /* ---------------- QR SCANNER & SETTLEMENT ---------------- */
+    async function startCameraScan() {
+      const statusEl = document.getElementById('qr-scanner-status');
+      if (!window.Html5Qrcode) {
+        statusEl.innerText = "Scanner library not loaded. Use 'Scan Photo' or select bill below.";
+        return;
       }
-
-      if (!db.bills.some(b => b.id === p.billCode)) {
-        db.bills.unshift({
-          id: p.billCode,
-          shopId: shop.id,
-          date: daysAgo(0),
-          type: "Credit",
-          amount,
-          paid: 0,
-          items: `SFA Page ${p.pageNum}`
-        });
-        saveDB();
-        alert(`Logged ${p.billCode} (${fmt(amount)}) under ${route}!`);
-      } else {
-        alert(`${p.billCode} is already logged.`);
-      }
-    }
-
-    function openScannerModal() {
-      document.getElementById('scanner-modal').classList.remove('hidden');
-      const openBills = db.bills.filter(b => (b.amount - b.paid) > 0);
-      const sel = document.getElementById('manual-settle-bill');
-
-      sel.innerHTML = `<option value="">-- Select Open Bill --</option>` +
-        openBills.map(b => {
-          const s = db.shops.find(x => x.id === b.shopId);
-          return `<option value="${b.id}">${b.id} - ${s ? s.name : ''} (Bal: ${fmt(b.amount - b.paid)})</option>`;
-        }).join('');
 
       try {
-        html5QrCode = new Html5Qrcode("qr-reader");
-        html5QrCode.start(
+        await stopCameraScan();
+        html5QrScanner = new Html5Qrcode("qr-reader");
+        statusEl.innerText = "Starting camera... Point at Top-Right QR code.";
+
+        await html5QrScanner.start(
           { facingMode: "environment" },
-          { fps: 10, qrbox: { width: 200, height: 200 } },
-          (decodedText) => {
-            loadSettleBill(decodedText.trim());
-          }
-        ).catch(() => {});
-      } catch (e) {}
-    }
-
-    function closeScannerModal() {
-      if (html5QrCode) {
-        html5QrCode.stop().catch(() => {});
+          { fps: 10, qrbox: { width: 220, height: 220 } },
+          async (decodedText) => {
+            const code = decodedText.trim();
+            statusEl.innerText = `Scanned QR: ${code}`;
+            await stopCameraScan();
+            openBillSettlement(code);
+          },
+          () => {}
+        );
+        statusEl.innerText = "Camera active—hold QR inside box.";
+      } catch (err) {
+        statusEl.innerText = "Camera blocked/unavailable. Use 'Scan Photo' or select/type QR code below.";
       }
-      document.getElementById('scanner-modal').classList.add('hidden');
-      document.getElementById('settle-box').classList.add('hidden');
     }
 
-    function loadSettleBill(billId) {
-      const bill = db.bills.find(b => b.id === billId);
+    async function stopCameraScan() {
+      if (html5QrScanner) {
+        try {
+          if (html5QrScanner.isScanning) {
+            await html5QrScanner.stop();
+          }
+          await html5QrScanner.clear();
+        } catch (e) {}
+        html5QrScanner = null;
+      }
+    }
+
+    async function scanQrImageFile(event) {
+      const file = event.target.files[0];
+      if (!file || !window.Html5Qrcode) return;
+      const statusEl = document.getElementById('qr-scanner-status');
+      statusEl.innerText = "Reading QR from image...";
+      try {
+        const tempScanner = new Html5Qrcode("qr-reader");
+        const decoded = await tempScanner.scanFile(file, true);
+        await tempScanner.clear();
+        statusEl.innerText = `Scanned QR from photo: ${decoded}`;
+        openBillSettlement(decoded.trim());
+      } catch (err) {
+        statusEl.innerText = "No QR detected in image. Try closer/clearer photo or enter bill ID.";
+      }
+    }
+
+    function openBillSettlement(rawCode) {
+      if (!rawCode) return;
+      let bill = db.bills.find(b => b.id.toLowerCase() === rawCode.toLowerCase());
+
+      if (!bill) {
+        // Create a quick credit record if scanned QR is new
+        const route = document.getElementById('new-cr-route')?.value || ALL_ROUTES[0];
+        bill = {
+          id: rawCode,
+          shopName: `Shop (${rawCode})`,
+          route,
+          date: daysAgo(0),
+          amount: 10000,
+          paid: 0,
+          carrier: "Rep",
+          dispatchedMorning: true,
+          lastAction: "Scanned New QR"
+        };
+        db.bills.unshift(bill);
+        saveDB();
+      }
+
+      currentScannedBillId = bill.id;
+      const bal = Math.max(0, bill.amount - bill.paid);
+
+      document.getElementById('active-bill-card').classList.remove('hidden');
+      document.getElementById('ab-code').innerText = `Bill / QR: ${bill.id}`;
+      document.getElementById('ab-shop-route').innerText = `${bill.shopName} · ${bill.route}`;
+      document.getElementById('ab-status').innerText =
+        `${bill.dispatchedMorning ? 'Morning Dispatched' : 'Pending Dispatch'} · ${bill.carrier || 'Unassigned'} · ${bill.lastAction || ''}`;
+      document.getElementById('ab-balance').innerText = fmt(bal);
+      document.getElementById('ab-breakdown').innerText = `Bill Total: ${fmt(bill.amount)} | Paid: ${fmt(bill.paid)}`;
+      document.getElementById('ab-carrier').value = bill.carrier || "";
+      document.getElementById('ab-partial-input').value = "";
+    }
+
+    function updateBillCarrier(carrier) {
+      const bill = db.bills.find(b => b.id === currentScannedBillId);
       if (!bill) return;
-      activeSettleBillId = billId;
-      const shop = db.shops.find(s => s.id === bill.shopId);
-      const bal = Math.max(0, bill.amount - b.paid);
-
-      document.getElementById('settle-info').innerText =
-        `${bill.id} · ${shop ? shop.name : ''} | Balance: ${fmt(bal)}`;
-      document.getElementById('settle-amount').value = bal;
-      document.getElementById('settle-box').classList.remove('hidden');
+      bill.carrier = carrier;
+      bill.lastAction = `Assigned to ${carrier || 'None'}`;
+      saveDB();
+      openBillSettlement(bill.id);
     }
 
-    function applySettlement() {
-      const addPay = Number(document.getElementById('settle-amount').value || 0);
-      const bill = db.bills.find(b => b.id === activeSettleBillId);
-      if (!bill || addPay < 0) return;
-
-      bill.paid = Math.min(bill.amount, bill.paid + addPay);
+    function markMorningDispatched() {
+      const bill = db.bills.find(b => b.id === currentScannedBillId);
+      if (!bill) return;
+      bill.dispatchedMorning = true;
+      bill.lastAction = `Morning Dispatched (${daysAgo(0)})`;
       saveDB();
-      closeScannerModal();
-      alert(`Updated ${bill.id}! Remaining Balance: ${fmt(bill.amount - bill.paid)}`);
+      openBillSettlement(bill.id);
+    }
+
+    function settleFullAmount() {
+      const bill = db.bills.find(b => b.id === currentScannedBillId);
+      if (!bill) return;
+      const bal = Math.max(0, bill.amount - bill.paid);
+      bill.paid = bill.amount;
+      bill.lastAction = `Full Paid (${fmt(bal)})`;
+      collectedTodayAmount += bal;
+      saveDB();
+      openBillSettlement(bill.id);
+    }
+
+    function settlePartialAmount() {
+      const bill = db.bills.find(b => b.id === currentScannedBillId);
+      if (!bill) return;
+      const bal = Math.max(0, bill.amount - bill.paid);
+      const payNow = Number(document.getElementById('ab-partial-input').value || 0);
+      if (payNow <= 0) return alert("Enter partial payment amount (Rs.).");
+      const applied = Math.min(bal, payNow);
+      bill.paid += applied;
+      bill.lastAction = `Partial Paid ${fmt(applied)}`;
+      collectedTodayAmount += applied;
+      saveDB();
+      openBillSettlement(bill.id);
+    }
+
+    function settleZeroPayment() {
+      const bill = db.bills.find(b => b.id === currentScannedBillId);
+      if (!bill) return;
+      const bal = Math.max(0, bill.amount - bill.paid);
+      bill.lastAction = `No Payment Today (Due: ${fmt(bal)})`;
+      saveDB();
+      openBillSettlement(bill.id);
+    }
+
+    function addCreditBillManual() {
+      const route = document.getElementById('new-cr-route').value;
+      const shopName = document.getElementById('new-cr-shop').value.trim();
+      const amount = Number(document.getElementById('new-cr-amount').value || 0);
+      const customId = document.getElementById('new-cr-id').value.trim();
+      const carrier = document.getElementById('new-cr-carrier').value;
+
+      if (!shopName || amount <= 0) return alert("Enter shop name and credit amount.");
+
+      const id = customId || `GD-${1001 + db.bills.length}`;
+      db.bills.unshift({
+        id,
+        shopName,
+        route,
+        date: daysAgo(0),
+        amount,
+        paid: 0,
+        carrier,
+        dispatchedMorning: true,
+        lastAction: "Credit Added"
+      });
+
+      document.getElementById('new-cr-shop').value = '';
+      document.getElementById('new-cr-amount').value = '';
+      document.getElementById('new-cr-id').value = '';
+      saveDB();
+    }
+
+    /* ---------------- TERRITORY, ROUTE & SHOP CREDIT VIEW ---------------- */
+    function renderCreditExplorer() {
+      const terrFilter = document.getElementById('filter-territory')?.value || "ALL";
+      const routeFilter = document.getElementById('filter-route')?.value || "ALL";
+      const shopSearch = (document.getElementById('filter-shop-search')?.value || "").trim().toLowerCase();
+
+      const matchingBills = db.bills.filter(b => {
+        const terr = getTerritoryFromRoute(b.route);
+        if (terrFilter !== "ALL" && terr !== terrFilter) return false;
+        if (routeFilter !== "ALL" && b.route !== routeFilter) return false;
+        if (shopSearch && !(b.shopName || "").toLowerCase().includes(shopSearch)) return false;
+        return true;
+      });
+
+      const openMatching = matchingBills.filter(b => (b.amount - b.paid) > 0);
+      const scopeCreditSum = openMatching.reduce((s, b) => s + Math.max(0, b.amount - b.paid), 0);
+
+      // Group open credit by shop
+      const shopMap = {};
+      openMatching.forEach(b => {
+        const key = `${b.shopName}__${b.route}`;
+        if (!shopMap[key]) {
+          shopMap[key] = { shopName: b.shopName, route: b.route, openCount: 0, dueTotal: 0 };
+        }
+        shopMap[key].openCount += 1;
+        shopMap[key].dueTotal += Math.max(0, b.amount - b.paid);
+      });
+
+      const shopListArr = Object.values(shopMap).sort((a, b) => b.dueTotal - a.dueTotal);
+
+      document.getElementById('scope-title').innerText =
+        `${terrFilter === "ALL" ? "All Territories" : terrFilter} · ${routeFilter === "ALL" ? "Selected Routes" : routeFilter}`;
+      document.getElementById('scope-meta').innerText =
+        `${openMatching.length} open bill(s) · ${shopListArr.length} shop(s) with balance`;
+      document.getElementById('scope-total').innerText = fmt(scopeCreditSum);
+
+      const shopSummaryEl = document.getElementById('shop-credit-summary');
+      shopSummaryEl.innerHTML = shopListArr.length
+        ? shopListArr.map(sc => `
+            <div class="bg-stone-50 border border-stone-200 rounded-xl p-3 flex items-center justify-between">
+              <div>
+                <div class="font-extrabold text-xs text-[#13311c]">${sc.shopName}</div>
+                <div class="text-[11px] text-stone-500">${sc.route} · <strong>${sc.openCount}</strong> open bill(s)</div>
+              </div>
+              <div class="text-right">
+                <div class="text-sm font-extrabold text-red-700">${fmt(sc.dueTotal)}</div>
+                <div class="text-[10px] text-stone-500">Outstanding</div>
+              </div>
+            </div>
+          `).join('')
+        : `<div class="text-xs text-stone-500">No open credit shops match this filter.</div>`;
+
+      const billsListEl = document.getElementById('credit-bills-list');
+      billsListEl.innerHTML = matchingBills.length
+        ? matchingBills.map(b => {
+            const bal = Math.max(0, b.amount - b.paid);
+            return `
+              <div class="card-surface rounded-xl p-3 flex items-center justify-between gap-2">
+                <div>
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="font-extrabold text-xs text-[#13311c]">${b.id}</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${bal > 0 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">
+                      ${bal > 0 ? 'Due: ' + fmt(bal) : 'SETTLED'}
+                    </span>
+                    <span class="text-[10px] text-stone-500">${b.carrier || ''}</span>
+                  </div>
+                  <div class="font-bold text-xs mt-0.5">${b.shopName} <span class="font-normal text-stone-500">(${b.route})</span></div>
+                  <div class="text-[10px] text-stone-500">Total: ${fmt(b.amount)} · Paid: ${fmt(b.paid)} · ${b.lastAction || b.date}</div>
+                </div>
+                <button onclick="openBillSettlement('${b.id}')" class="brand-gold text-[#13311c] text-xs font-bold px-3 py-2 rounded-lg shrink-0">
+                  Settle
+                </button>
+              </div>
+            `;
+          }).join('')
+        : `<div class="text-xs text-stone-500">No bills found.</div>`;
     }
 
     function addShop() {
       const route = document.getElementById('shop-route').value;
       const name = document.getElementById('shop-name').value.trim();
       const phone = document.getElementById('shop-phone').value.trim();
-      const limit = Number(document.getElementById('shop-limit').value || 100000);
+      const limit = Number(document.getElementById('shop-limit').value || 150000);
       if (!name) return alert("Enter shop name.");
       db.shops.push({ id: "S" + Date.now(), route, name, phone, limit });
       document.getElementById('shop-name').value = '';
       document.getElementById('shop-phone').value = '';
       saveDB();
-      updateShopSelects();
     }
 
     function addCheque() {
-      const shopId = document.getElementById('chq-shop').value;
+      const shopName = document.getElementById('chq-shop-name').value.trim() || "Shop";
       const number = document.getElementById('chq-number').value.trim();
       const bank = document.getElementById('chq-bank').value.trim();
       const amount = Number(document.getElementById('chq-amount').value);
       const date = document.getElementById('chq-date').value || daysAgo(0);
       if (!number || amount <= 0) return alert("Enter cheque number and amount.");
-      db.cheques.unshift({ id: "C" + Date.now(), shopId, number, bank, amount, date, status: "Pending" });
+      db.cheques.unshift({ id: "C" + Date.now(), shopName, number, bank, amount, date, status: "Pending" });
       document.getElementById('chq-number').value = '';
       document.getElementById('chq-bank').value = '';
       document.getElementById('chq-amount').value = '';
@@ -788,18 +1095,6 @@
       saveDB();
     }
 
-    function addStock() {
-      const name = document.getElementById('stk-name').value.trim();
-      const qty = Number(document.getElementById('stk-qty').value);
-      if (!name) return;
-      const existing = db.stock.find(s => s.name.toLowerCase() === name.toLowerCase());
-      if (existing) existing.qty = qty;
-      else db.stock.push({ name, qty });
-      document.getElementById('stk-name').value = '';
-      document.getElementById('stk-qty').value = '';
-      saveDB();
-    }
-
     function calcProfit() {
       const sales = Number(document.getElementById('prof-sales').value || 0);
       const cogs = Number(document.getElementById('prof-cogs').value || 0);
@@ -808,54 +1103,30 @@
       document.getElementById('prof-net').innerText = fmt(sales - cogs - fuel - staff);
     }
 
-    function renderBills() {
-      const list = document.getElementById('bills-list');
-      if (!list) return;
-      list.innerHTML = db.bills.map(b => {
-        const s = db.shops.find(x => x.id === b.shopId) || { name: "Route", route: "" };
-        const bal = Math.max(0, b.amount - b.paid);
-        return `
-          <div class="bg-stone-50 border border-stone-200 rounded-xl p-3 flex items-center justify-between">
-            <div>
-              <div class="font-bold text-xs text-[#13311c]">${b.id} · ${s.route}</div>
-              <div class="text-[11px] text-stone-500">Total: ${fmt(b.amount)} · Balance: <strong>${fmt(bal)}</strong></div>
-            </div>
-            <button onclick="loadSettleBill('${b.id}'); document.getElementById('scanner-modal').classList.remove('hidden');" class="brand-gold text-[#13311c] text-xs font-bold px-2.5 py-1.5 rounded-lg">
-              Settle
-            </button>
-          </div>
-        `;
-      }).join('');
-    }
-
     function refreshAll() {
       const today = daysAgo(0);
-      let totalCredit = 0, anuCredit = 0, mihCredit = 0, openBills = 0;
-      let billedToday = 0, billedCount = 0, collectedToday = 0;
-      let overdue = 0, overdueCount = 0;
-      let a0_14 = 0, a15_30 = 0, a30_plus = 0;
+      let totalCredit = 0, anuCredit = 0, mihCredit = 0, openBills = 0, anuOpen = 0, mihOpen = 0;
+      let billedToday = 0, billedCount = 0;
 
       db.bills.forEach(b => {
         const bal = Math.max(0, b.amount - b.paid);
-        const shop = db.shops.find(s => s.id === b.shopId);
-        const isAnu = shop && shop.route.startsWith("Anuradhapura");
-        const ageDays = Math.floor((new Date(today) - new Date(b.date)) / (1000 * 60 * 60 * 24));
+        const isMih = getTerritoryFromRoute(b.route) === "Mihintale";
 
         if (b.date === today) {
           billedToday += b.amount;
           billedCount++;
-          collectedToday += b.paid;
         }
 
         if (bal > 0) {
           totalCredit += bal;
           openBills++;
-          if (isAnu) anuCredit += bal;
-          else mihCredit += bal;
-
-          if (ageDays <= 14) a0_14 += bal;
-          else if (ageDays <= 30) { a15_30 += bal; overdue += bal; overdueCount++; }
-          else { a30_plus += bal; overdue += bal; overdueCount++; }
+          if (isMih) {
+            mihCredit += bal;
+            mihOpen++;
+          } else {
+            anuCredit += bal;
+            anuOpen++;
+          }
         }
       });
 
@@ -866,73 +1137,61 @@
 
       const anuPct = totalCredit ? Math.round((anuCredit / totalCredit) * 100) : 0;
       const mihPct = totalCredit ? (100 - anuPct) : 0;
-      document.getElementById('dash-anu-pct').innerText = `${anuPct}% of total credit`;
-      document.getElementById('dash-mih-pct').innerText = `${mihPct}% of total credit`;
+      document.getElementById('dash-anu-sub').innerText = `${anuOpen} open bills · ${anuPct}%`;
+      document.getElementById('dash-mih-sub').innerText = `${mihOpen} open bills · ${mihPct}%`;
 
-      document.getElementById('dash-collected-today').innerText = fmt(collectedToday);
+      document.getElementById('dash-collected-today').innerText = fmt(collectedTodayAmount);
       document.getElementById('dash-billed-today').innerText = fmt(billedToday);
       document.getElementById('dash-billed-count').innerText = `${billedCount} bills`;
-      document.getElementById('dash-overdue').innerText = fmt(overdue);
-      document.getElementById('dash-overdue-count').innerText = `${overdueCount} bills`;
 
-      document.getElementById('aging-0-14').innerText = fmt(a0_14);
-      document.getElementById('aging-15-30').innerText = fmt(a15_30);
-      document.getElementById('aging-30-plus').innerText = fmt(a30_plus);
-
-      const pendingChq = db.cheques.filter(c => c.status === "Pending");
-      const chqSum = pendingChq.reduce((sum, c) => sum + c.amount, 0);
-      document.getElementById('dash-cheques-due').innerText = fmt(chqSum);
-      document.getElementById('dash-cheques-count').innerText = `${pendingChq.length} pending deposit`;
-      document.getElementById('alert-badge').innerText = pendingChq.length;
-
-      document.getElementById('cheques-list').innerHTML = db.cheques.map(c => {
-        const s = db.shops.find(x => x.id === c.shopId);
-        return `
-          <div class="card-surface rounded-2xl p-3.5 flex items-center justify-between">
-            <div>
-              <div class="font-bold text-xs text-[#13311c]">#${c.number} · ${c.bank} (${fmt(c.amount)})</div>
-              <div class="text-[11px] text-stone-500">${s ? s.name : ''} · Deposit Date: <strong>${c.date}</strong></div>
-            </div>
-            ${c.status === 'Pending'
-              ? `<button onclick="markChequeDeposited('${c.id}')" class="brand-gold text-[#13311c] text-xs font-bold px-3 py-1.5 rounded-lg">Deposit</button>`
-              : `<span class="text-xs font-bold text-emerald-700">✓ Deposited</span>`
-            }
-          </div>
-        `;
-      }).join('');
+      // Quick dropdown for scanner
+      const quickSel = document.getElementById('quick-bill-select');
+      if (quickSel) {
+        quickSel.innerHTML = `<option value="">-- Select Bill to Scan / Settle --</option>` +
+          db.bills.map(b => {
+            const bal = Math.max(0, b.amount - b.paid);
+            return `<option value="${b.id}">${b.id} · ${b.shopName} (Due: ${fmt(bal)})</option>`;
+          }).join('');
+      }
 
       document.getElementById('shops-list').innerHTML = db.shops.map(s => `
         <div class="card-surface rounded-xl p-3 flex items-center justify-between">
           <div>
             <div class="font-bold text-xs text-[#13311c]">${s.name}</div>
-            <div class="text-[11px] text-stone-500">${s.route} · ${s.phone || 'No Phone'}</div>
+            <div class="text-[11px] text-stone-500">${s.route} · ${s.phone || ''}</div>
           </div>
           <div class="text-xs font-bold text-stone-700">Limit: ${fmt(s.limit)}</div>
         </div>
       `).join('');
 
-      document.getElementById('stock-list').innerHTML = db.stock.map(st => `
-        <div class="flex justify-between text-xs py-1.5 border-b border-stone-100">
-          <span class="font-medium">${st.name}</span>
-          <span class="font-bold text-[#13311c]">${st.qty} units</span>
+      document.getElementById('cheques-list').innerHTML = db.cheques.map(c => `
+        <div class="bg-stone-50 border border-stone-200 rounded-xl p-3 flex items-center justify-between">
+          <div>
+            <div class="font-bold text-xs text-[#13311c]">#${c.number} · ${c.bank} (${fmt(c.amount)})</div>
+            <div class="text-[11px] text-stone-500">${c.shopName} · Deposit Date: <strong>${c.date}</strong></div>
+          </div>
+          ${c.status === 'Pending'
+            ? `<button onclick="markChequeDeposited('${c.id}')" class="brand-gold text-[#13311c] text-xs font-bold px-3 py-1.5 rounded-lg">Deposit</button>`
+            : `<span class="text-xs font-bold text-emerald-700">✓ Deposited</span>`
+          }
         </div>
       `).join('');
 
-      const totalBilledAll = db.bills.reduce((s, b) => s + b.amount, 0);
+      const allSales = db.bills.reduce((s, b) => s + b.amount, 0);
       if (!document.getElementById('prof-sales').value) {
-        document.getElementById('prof-sales').value = totalBilledAll;
-        document.getElementById('prof-cogs').value = Math.round(totalBilledAll * 0.84);
+        document.getElementById('prof-sales').value = allSales;
+        document.getElementById('prof-cogs').value = Math.round(allSales * 0.84);
         calcProfit();
       }
 
-      renderBills();
+      renderCreditExplorer();
     }
 
     function exportData() {
       const blob = new Blob([JSON.stringify(db, null, 2)], { type: "application/json" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = `Golden_Distributors_Backup_${daysAgo(0)}.json`;
+      a.download = `Golden_Credit_Backup_${daysAgo(0)}.json`;
       a.click();
     }
 
@@ -944,8 +1203,7 @@
         try {
           db = JSON.parse(ev.target.result);
           saveDB();
-          updateShopSelects();
-          alert("Data imported successfully!");
+          alert("Credit data imported successfully!");
         } catch (err) {
           alert("Invalid backup file.");
         }
