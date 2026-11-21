@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Golden Distributors ERP | Freelands Enterprises</title>
+  <title>Golden Distributors ERP | Freelan Enterprises</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -28,6 +28,16 @@
     .card-surface {
       background-color: #ffffff;
       border: 1px solid #e6e2d6;
+    }
+
+    .route-dot {
+      display: inline-block;
+      width: 11px;
+      height: 11px;
+      border-radius: 9999px;
+      flex-shrink: 0;
+      border: 1px solid rgba(0, 0, 0, 0.25);
+      vertical-align: middle;
     }
 
     .invoice-sheet {
@@ -167,7 +177,7 @@
           <h1 id="header-agency-title" class="font-bold text-base leading-tight">Golden Distributors</h1>
           <span id="header-agency-badge" class="brand-gold text-[#13311c] text-[10px] font-extrabold px-2 py-0.5 rounded-full">LOCKED</span>
         </div>
-        <p id="header-agency-sub" class="text-[11px] text-emerald-200">Freelands Enterprises</p>
+        <p id="header-agency-sub" class="text-[11px] text-emerald-200">Freelan Enterprises</p>
       </div>
     </div>
     <button onclick="openAgencySwitcher()" class="bg-[#1e462a] hover:bg-[#275936] border border-emerald-600 px-3 py-1.5 rounded-full text-xs font-bold">
@@ -240,7 +250,7 @@
       <div class="card-surface rounded-2xl p-4 space-y-3 border-2 border-dashed border-[#13311c]/40">
         <div class="flex items-center justify-between gap-2">
           <div>
-            <h3 class="font-bold text-sm text-[#13311c]">📄 Upload Freelands SFA / Direct Sales PDF</h3>
+            <h3 class="font-bold text-sm text-[#13311c]">📄 Upload Freelan SFA / Direct Sales PDF</h3>
             <p class="text-[11px] text-stone-500">Exact invoice details preserved + clear QR on Top-Right</p>
           </div>
           <label class="brand-green text-white text-xs font-bold px-3 py-2.5 rounded-xl cursor-pointer shrink-0">
@@ -262,7 +272,10 @@
           </div>
           <div>
             <label class="text-[11px] font-semibold text-stone-600">Route (Active Territory Only)</label>
-            <select id="pdf-route-select" class="w-full mt-1 p-2 rounded-lg border border-stone-300 text-xs bg-white"></select>
+            <div class="flex items-center gap-2 mt-1">
+              <span id="pdf-route-dot" class="route-dot"></span>
+              <select id="pdf-route-select" onchange="syncRouteColorDots()" class="w-full p-2 rounded-lg border border-stone-300 text-xs bg-white"></select>
+            </div>
           </div>
           <div class="flex items-end">
             <button onclick="printAllRenderedPages()" class="w-full brand-gold text-[#13311c] font-bold py-2 px-3 rounded-lg text-xs">
@@ -303,8 +316,11 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
           <div>
-            <label class="text-[11px] font-semibold text-stone-600">Sheet Route (Mon–Sat)</label>
-            <select id="sheet-route-select" class="w-full mt-1 p-2 rounded-lg border border-stone-300 text-xs bg-white"></select>
+            <label class="text-[11px] font-semibold text-stone-600">Sheet Route (Color Coded)</label>
+            <div class="flex items-center gap-2 mt-1">
+              <span id="sheet-route-dot" class="route-dot"></span>
+              <select id="sheet-route-select" onchange="syncRouteColorDots()" class="w-full p-2 rounded-lg border border-stone-300 text-xs bg-white"></select>
+            </div>
           </div>
           <div>
             <label class="text-[11px] font-semibold text-stone-600">Rep / Cash Collector (Sheet Header)</label>
@@ -392,9 +408,12 @@
       <div class="card-surface rounded-2xl p-4 space-y-3">
         <h3 id="add-cr-heading" class="font-bold text-sm text-[#13311c]">+ Add Daily Credit Bill</h3>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <select id="new-cr-route" class="p-2.5 rounded-xl border border-stone-300 text-xs bg-white"></select>
+          <div class="flex items-center gap-2">
+            <span id="new-cr-route-dot" class="route-dot"></span>
+            <select id="new-cr-route" onchange="syncRouteColorDots()" class="w-full p-2.5 rounded-xl border border-stone-300 text-xs bg-white"></select>
+          </div>
           <input id="new-cr-shop" type="text" placeholder="Shop Name" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
-          <input id="new-cr-cust-code" type="text" placeholder="Customer Code (e.g. R186-000050)" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
+          <input id="new-cr-cust-code" type="text" placeholder="Outlet ID / Cust Code (e.g. R187-000082)" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <input id="new-cr-amount" type="number" placeholder="Credit Amount (Rs.)" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
@@ -409,19 +428,25 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
-            <label class="text-[11px] font-semibold text-stone-600">Select Route (Mon–Sat)</label>
-            <select id="filter-route" onchange="renderCreditExplorer()" class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-xs bg-white"></select>
+            <label class="text-[11px] font-semibold text-stone-600">Select Route (Color Coded)</label>
+            <div class="flex items-center gap-2 mt-1">
+              <span id="filter-route-dot" class="route-dot"></span>
+              <select id="filter-route" onchange="syncRouteColorDots(); renderCreditExplorer();" class="w-full p-2.5 rounded-xl border border-stone-300 text-xs bg-white"></select>
+            </div>
           </div>
           <div>
-            <label class="text-[11px] font-semibold text-stone-600">Search Shop Name or Customer Code</label>
+            <label class="text-[11px] font-semibold text-stone-600">Search Shop Name or Outlet ID</label>
             <input id="filter-shop-search" type="text" oninput="renderCreditExplorer()" placeholder="Type shop name or code..." class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-xs bg-white" />
           </div>
         </div>
 
         <div id="credit-scope-summary" class="brand-green text-white rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <div id="scope-title" class="text-xs font-bold text-emerald-200">Selected Route Credit</div>
-            <div id="scope-meta" class="text-[11px] text-emerald-100">0 open bills · 0 shops</div>
+          <div class="flex items-center gap-2.5">
+            <span id="scope-route-dot" class="route-dot" style="width:14px;height:14px;"></span>
+            <div>
+              <div id="scope-title" class="text-xs font-bold text-emerald-200">Selected Route Credit</div>
+              <div id="scope-meta" class="text-[11px] text-emerald-100">0 open bills · 0 shops</div>
+            </div>
           </div>
           <div id="scope-total" class="text-xl font-extrabold">Rs. 0</div>
         </div>
@@ -441,20 +466,30 @@
     <!-- TAB 4: ROUTES & SHOPS -->
     <section id="tab-shops" class="hidden space-y-4">
       <h2 id="shops-heading" class="text-xl font-extrabold text-[#13311c]">Territory Routes & Shops</h2>
+
+      <!-- Color-Coded Route Legend Card -->
+      <div class="card-surface rounded-2xl p-4 space-y-2">
+        <h3 id="route-legend-title" class="font-bold text-sm text-[#13311c]">Route Color Codes</h3>
+        <div id="route-color-legend" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+      </div>
+
       <div class="card-surface rounded-2xl p-4 space-y-3">
         <h3 class="font-bold text-sm text-[#13311c]">Register New Shop</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="text-xs font-semibold text-stone-600">Route (Active Territory Only)</label>
-            <select id="shop-route" class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-sm bg-white"></select>
+            <div class="flex items-center gap-2 mt-1">
+              <span id="shop-route-dot" class="route-dot"></span>
+              <select id="shop-route" onchange="syncRouteColorDots()" class="w-full p-2.5 rounded-xl border border-stone-300 text-sm bg-white"></select>
+            </div>
           </div>
           <div>
-            <label class="text-xs font-semibold text-stone-600">Shop Name</label>
-            <input id="shop-name" type="text" placeholder="e.g. Indrani Stores" class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-sm" />
+            <label class="text-xs font-semibold text-stone-600">Shop / Outlet Name</label>
+            <input id="shop-name" type="text" placeholder="e.g. Premadasa Stores" class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-sm" />
           </div>
           <div>
-            <label class="text-xs font-semibold text-stone-600">Customer Code</label>
-            <input id="shop-cust-code" type="text" placeholder="e.g. R186-000050" class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-sm" />
+            <label class="text-xs font-semibold text-stone-600">Outlet ID / Customer Code</label>
+            <input id="shop-cust-code" type="text" placeholder="e.g. R187-000082" class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-sm" />
           </div>
           <div>
             <label class="text-xs font-semibold text-stone-600">Credit Limit (Rs.)</label>
@@ -490,7 +525,7 @@
             <input id="prof-sales" type="number" oninput="calcProfit()" class="w-full mt-1 p-2 rounded-xl border border-stone-300 text-sm" />
           </div>
           <div>
-            <label class="text-xs font-semibold text-stone-600">Freelands Cost / COGS</label>
+            <label class="text-xs font-semibold text-stone-600">Freelan Cost / COGS</label>
             <input id="prof-cogs" type="number" oninput="calcProfit()" class="w-full mt-1 p-2 rounded-xl border border-stone-300 text-sm" />
           </div>
           <div>
@@ -538,22 +573,31 @@
         'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
 
+    const ROUTE_COLOR_HEX = {
+      Green: "#16a34a",
+      Yellow: "#eab308",
+      Pink: "#ec4899",
+      Blue: "#2563eb",
+      Black: "#111827",
+      Red: "#dc2626"
+    };
+
     const TERRITORY_ROUTES = {
       Anuradhapura: [
-        "Mon (Green): Town up to Pubudupura",
-        "Tue (Yellow): Pandulagama, Nelubewa up to Hidogama",
-        "Wed (Pink): Mathale junc, Galkulama up to Siwalakulama",
-        "Thu (Blue): Jafna junc, Mihinthale up to Saliyapura",
-        "Fri (Black): Lolugaswewa, Alayapaththuwa up to Thanthirimale",
-        "Sat (Red): Nirawiya, Ilandagahawewa up to Pandulagama"
+        { label: "Mon (Green): Town up to Pubudupura", color: "Green" },
+        { label: "Tue (Yellow): Pandulagama, Nelubewa up to Hidogama", color: "Yellow" },
+        { label: "Wed (Pink): Mathale junc, Galkulama up to Siwalakulama", color: "Pink" },
+        { label: "Thu (Blue): Jafna junc, Mihinthale up to Saliyapura", color: "Blue" },
+        { label: "Fri (Black): Lolugaswewa, Alayapaththuwa up to Thanthirimale", color: "Black" },
+        { label: "Sat (Red): Nirawiya, Ilandagahawewa up to Pandulagama", color: "Red" }
       ],
       Mihintale: [
-        "Mon (Green): Alayapaththuwa up to Vilachchiya",
-        "Tue (Yellow): Jafna junc up to Rambewa",
-        "Wed (Pink): Galpalama up to Galakadawala",
-        "Thu (Blue): Mihinthale, Galkulama up to Thirappane",
-        "Fri (Black): Market side up to Airport road",
-        "Sat (Red): Dahaiyagama, Wijepura up to Thuruwila"
+        { label: "Mon (Green): Alayapaththuwa up to Vilachchiya", color: "Green" },
+        { label: "Tue (Yellow): Jafna junc up to Rambewa", color: "Yellow" },
+        { label: "Wed (Pink): Galpalama up to Galakadawala", color: "Pink" },
+        { label: "Thu (Blue): Mihinthale, Galkulama up to Thirappane", color: "Blue" },
+        { label: "Fri (Black): Market side up to Airport road", color: "Black" },
+        { label: "Sat (Red): Dahaiyagama, Wijepura up to Thuruwila", color: "Red" }
       ]
     };
 
@@ -568,6 +612,35 @@
       ]
     };
 
+    function getRouteColorHex(routeLabel) {
+      if (!routeLabel || routeLabel === "ALL") return "#e8b339";
+      for (const terr of Object.keys(TERRITORY_ROUTES)) {
+        const found = TERRITORY_ROUTES[terr].find(r => r.label === routeLabel);
+        if (found) return ROUTE_COLOR_HEX[found.color] || "#16a34a";
+      }
+      if (routeLabel.includes("(Green)")) return ROUTE_COLOR_HEX.Green;
+      if (routeLabel.includes("(Yellow)")) return ROUTE_COLOR_HEX.Yellow;
+      if (routeLabel.includes("(Pink)")) return ROUTE_COLOR_HEX.Pink;
+      if (routeLabel.includes("(Blue)")) return ROUTE_COLOR_HEX.Blue;
+      if (routeLabel.includes("(Black)")) return ROUTE_COLOR_HEX.Black;
+      if (routeLabel.includes("(Red)")) return ROUTE_COLOR_HEX.Red;
+      return "#16a34a";
+    }
+
+    function setDotColor(elId, routeLabel) {
+      const el = document.getElementById(elId);
+      if (el) el.style.backgroundColor = getRouteColorHex(routeLabel);
+    }
+
+    function syncRouteColorDots() {
+      setDotColor('pdf-route-dot', document.getElementById('pdf-route-select')?.value);
+      setDotColor('sheet-route-dot', document.getElementById('sheet-route-select')?.value);
+      setDotColor('new-cr-route-dot', document.getElementById('new-cr-route')?.value);
+      setDotColor('filter-route-dot', document.getElementById('filter-route')?.value);
+      setDotColor('scope-route-dot', document.getElementById('filter-route')?.value);
+      setDotColor('shop-route-dot', document.getElementById('shop-route')?.value);
+    }
+
     function daysAgo(n) {
       const d = new Date();
       d.setDate(d.getDate() - n);
@@ -576,20 +649,20 @@
 
     const defaultData = {
       shops: [
-        { id: "S1", territory: "Anuradhapura", route: TERRITORY_ROUTES.Anuradhapura[0], name: "Pubudupura Stores", custCode: "R186-000010", limit: 150000 },
-        { id: "S2", territory: "Anuradhapura", route: TERRITORY_ROUTES.Anuradhapura[1], name: "Hidogama Trade Mart", custCode: "R186-000025", limit: 120000 },
-        { id: "S3", territory: "Mihintale", route: TERRITORY_ROUTES.Mihintale[1], name: "Rambewa Bakers & Mart", custCode: "M201-000014", limit: 200000 },
-        { id: "S4", territory: "Mihintale", route: TERRITORY_ROUTES.Mihintale[3], name: "Thirappane Grocery", custCode: "M201-000031", limit: 150000 }
+        { id: "S1", territory: "Anuradhapura", route: TERRITORY_ROUTES.Anuradhapura[0].label, name: "Pubudupura Stores", custCode: "R186-000010", limit: 150000 },
+        { id: "S2", territory: "Anuradhapura", route: TERRITORY_ROUTES.Anuradhapura[1].label, name: "Hidogama Trade Mart", custCode: "R186-000025", limit: 120000 },
+        { id: "S3", territory: "Mihintale", route: TERRITORY_ROUTES.Mihintale[2].label, name: "Premadasa Stores", custCode: "R187-000082", limit: 200000 },
+        { id: "S4", territory: "Mihintale", route: TERRITORY_ROUTES.Mihintale[4].label, name: "NO Super", custCode: "CUS25634", limit: 150000 }
       ],
       bills: [
-        { id: "AN-1001", territory: "Anuradhapura", shopName: "Pubudupura Stores", custCode: "R186-000010", route: TERRITORY_ROUTES.Anuradhapura[0], date: daysAgo(2), amount: 8650, paid: 0, carrier: "Rep: Mr. Kapila", dispatchedMorning: true, lastAction: "Morning Dispatched" },
-        { id: "AN-1002", territory: "Anuradhapura", shopName: "Hidogama Trade Mart", custCode: "R186-000025", route: TERRITORY_ROUTES.Anuradhapura[1], date: daysAgo(6), amount: 14500, paid: 4500, carrier: "Cash Collector: Mr. Saman", dispatchedMorning: true, lastAction: "Partial Paid Rs. 4,500" },
-        { id: "MH-1003", territory: "Mihintale", shopName: "Rambewa Bakers & Mart", custCode: "M201-000014", route: TERRITORY_ROUTES.Mihintale[1], date: daysAgo(1), amount: 42000, paid: 0, carrier: "Rep: Mr. Sugath", dispatchedMorning: true, lastAction: "Morning Dispatched" },
-        { id: "MH-1004", territory: "Mihintale", shopName: "Thirappane Grocery", custCode: "M201-000031", route: TERRITORY_ROUTES.Mihintale[3], date: daysAgo(4), amount: 28000, paid: 0, carrier: "Cash Collector: Mr. Nisal", dispatchedMorning: false, lastAction: "Credit Logged" }
+        { id: "AN-1001", territory: "Anuradhapura", shopName: "Pubudupura Stores", custCode: "R186-000010", route: TERRITORY_ROUTES.Anuradhapura[0].label, date: daysAgo(2), amount: 8650, paid: 0, carrier: "Rep: Mr. Kapila", dispatchedMorning: true, lastAction: "Morning Dispatched" },
+        { id: "AN-1002", territory: "Anuradhapura", shopName: "Hidogama Trade Mart", custCode: "R186-000025", route: TERRITORY_ROUTES.Anuradhapura[1].label, date: daysAgo(6), amount: 14500, paid: 4500, carrier: "Cash Collector: Mr. Saman", dispatchedMorning: true, lastAction: "Partial Paid Rs. 4,500" },
+        { id: "MH-1003", territory: "Mihintale", shopName: "Premadasa Stores", custCode: "R187-000082", route: TERRITORY_ROUTES.Mihintale[2].label, date: daysAgo(1), amount: 42000, paid: 0, carrier: "Rep: Mr. Sugath", dispatchedMorning: true, lastAction: "Morning Dispatched" },
+        { id: "MH-1004", territory: "Mihintale", shopName: "NO Super", custCode: "CUS25634", route: TERRITORY_ROUTES.Mihintale[4].label, date: daysAgo(4), amount: 28000, paid: 0, carrier: "Cash Collector: Mr. Nisal", dispatchedMorning: false, lastAction: "Credit Logged" }
       ],
       cheques: [
         { id: "C1", territory: "Anuradhapura", shopName: "Pubudupura Stores", number: "458921", bank: "BOC", amount: 24400, date: daysAgo(0), status: "Pending" },
-        { id: "C2", territory: "Mihintale", shopName: "Rambewa Bakers & Mart", number: "782104", bank: "Commercial Bank", amount: 35000, date: daysAgo(0), status: "Pending" }
+        { id: "C2", territory: "Mihintale", shopName: "Premadasa Stores", number: "782104", bank: "Commercial Bank", amount: 35000, date: daysAgo(0), status: "Pending" }
       ],
       scannedTodayByTerr: {
         Anuradhapura: [],
@@ -597,7 +670,7 @@
       }
     };
 
-    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v3')) || defaultData;
+    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v4')) || defaultData;
     if (!db.scannedTodayByTerr) db.scannedTodayByTerr = { Anuradhapura: [], Mihintale: [] };
 
     let activeTerritory = sessionStorage.getItem('gd_active_territory') || null;
@@ -659,9 +732,10 @@
       document.getElementById('add-cr-heading').innerText = `+ Add ${activeTerritory} Credit Bill`;
 
       document.getElementById('shops-heading').innerText = `${activeTerritory} Routes & Shops`;
+      document.getElementById('route-legend-title').innerText = `${activeTerritory} Route Color Codes`;
       document.getElementById('profit-heading').innerText = `${activeTerritory} Cheques & Profit`;
 
-      const routeOpts = routes.map(r => `<option value="${r}">${r}</option>`).join('');
+      const routeOpts = routes.map(r => `<option value="${r.label}">${r.label}</option>`).join('');
       const staffOpts = staff.map(st => `<option value="${st}">${st}</option>`).join('');
 
       document.getElementById('pdf-route-select').innerHTML = routeOpts;
@@ -673,11 +747,19 @@
       document.getElementById('new-cr-carrier').innerHTML = staffOpts;
       document.getElementById('ab-carrier').innerHTML = `<option value="">-- Assign Rep / Cash --</option>` + staffOpts;
 
+      document.getElementById('route-color-legend').innerHTML = routes.map(r => `
+        <div class="flex items-center gap-2.5 bg-[#f9f8f4] border border-stone-200 rounded-xl px-3 py-2">
+          <span class="route-dot" style="background-color: ${ROUTE_COLOR_HEX[r.color] || '#16a34a'};"></span>
+          <span class="text-xs font-semibold text-[#13311c]">${r.label}</span>
+        </div>
+      `).join('');
+
+      syncRouteColorDots();
       refreshAll();
     }
 
     function saveDB() {
-      localStorage.setItem('gd_strict_agency_v3', JSON.stringify(db));
+      localStorage.setItem('gd_strict_agency_v4', JSON.stringify(db));
       refreshAll();
     }
 
@@ -726,7 +808,7 @@
           const codeBase = invMatch ? invMatch[1].replace(/[^A-Z0-9_\-]/gi, '').slice(0, 18) : `SFA-${pageNum}`;
           const qrCodeValue = `${prefix}-${codeBase}-P${pageNum}`;
 
-          const custMatch = pageText.match(/\b([A-Z]\d{2,3}-\d{4,7})\b/i);
+          const custMatch = pageText.match(/\b((?:R\d{2,3}|CUS)\d{0,4}-?\d{3,7})\b/i);
           const detectedCustCode = custMatch ? custMatch[1].toUpperCase() : `CUST-${pageNum}`;
 
           const nums = (pageText.match(/\b\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?\b/g) || [])
@@ -756,6 +838,7 @@
 
         prog.innerText = `Ready: ${renderedPages.length} page(s) for ${activeTerritory} with Top-Right QR.`;
         document.getElementById('pdf-controls').classList.remove('hidden');
+        syncRouteColorDots();
         renderSfaCards();
       } catch (err) {
         prog.innerText = "Error reading PDF.";
@@ -827,7 +910,7 @@
       const shopName = (document.getElementById(`pdf-shop-${idx}`)?.value || p.detectedShop || "Shop").trim();
       const custCode = (document.getElementById(`pdf-cust-${idx}`)?.value || p.detectedCustCode || "").trim();
       const amount = Number(document.getElementById(`pdf-amt-${idx}`)?.value || p.detectedAmount || 0);
-      const route = document.getElementById('pdf-route-select')?.value || TERRITORY_ROUTES[activeTerritory][0];
+      const route = document.getElementById('pdf-route-select')?.value || TERRITORY_ROUTES[activeTerritory][0].label;
       const staff = TERRITORY_STAFF[activeTerritory][0];
 
       if (amount <= 0) return alert("Enter bill amount (Rs.) to log credit.");
@@ -926,7 +1009,7 @@
       if (!list.includes(billId)) {
         list.push(billId);
         db.scannedTodayByTerr[activeTerritory] = list;
-        localStorage.setItem('gd_strict_agency_v3', JSON.stringify(db));
+        localStorage.setItem('gd_strict_agency_v4', JSON.stringify(db));
         updateScannedSheetBanner();
       }
     }
@@ -947,7 +1030,7 @@
     function printScannedDispatchSheet() {
       if (!activeTerritory) return;
       const scannedIds = db.scannedTodayByTerr[activeTerritory] || [];
-      const route = document.getElementById('sheet-route-select')?.value || TERRITORY_ROUTES[activeTerritory][0];
+      const route = document.getElementById('sheet-route-select')?.value || TERRITORY_ROUTES[activeTerritory][0].label;
       const staff = document.getElementById('sheet-staff-select')?.value || TERRITORY_STAFF[activeTerritory][0];
       const todayStr = daysAgo(0);
 
@@ -996,7 +1079,7 @@
                 <th>#</th>
                 <th>Bill Date</th>
                 <th>Shop Name / Bill No</th>
-                <th>Customer Code</th>
+                <th>Outlet ID / Code</th>
                 <th style="text-align:right;">Outstanding Balance</th>
               </tr>
             </thead>
@@ -1095,7 +1178,7 @@
       }
 
       if (!bill) {
-        const route = document.getElementById('sheet-route-select')?.value || TERRITORY_ROUTES[activeTerritory][0];
+        const route = document.getElementById('sheet-route-select')?.value || TERRITORY_ROUTES[activeTerritory][0].label;
         const staff = document.getElementById('sheet-staff-select')?.value || TERRITORY_STAFF[activeTerritory][0];
         bill = {
           id: rawCode,
@@ -1121,8 +1204,8 @@
 
       document.getElementById('active-bill-card').classList.remove('hidden');
       document.getElementById('ab-code').innerText = `Bill / QR: ${bill.id} · ${bill.territory}`;
-      document.getElementById('ab-shop-route').innerText = `${bill.shopName} · ${bill.route}`;
-      document.getElementById('ab-cust-code').innerText = `Customer Code: ${bill.custCode || "-"} · Date: ${bill.date}`;
+      document.getElementById('ab-shop-route').innerHTML = `<span class="route-dot" style="background-color:${getRouteColorHex(bill.route)};margin-right:5px;"></span>${bill.shopName} · ${bill.route}`;
+      document.getElementById('ab-cust-code').innerText = `Outlet ID / Code: ${bill.custCode || "-"} · Date: ${bill.date}`;
       document.getElementById('ab-status').innerText =
         `${bill.dispatchedMorning ? 'Morning Dispatched' : 'Pending Dispatch'} · ${bill.carrier || 'Unassigned'} · ${bill.lastAction || ''}`;
       document.getElementById('ab-balance').innerText = fmt(bal);
@@ -1251,12 +1334,16 @@
       document.getElementById('scope-meta').innerText =
         `${openMatching.length} open bill(s) · ${shopListArr.length} shop(s) with balance`;
       document.getElementById('scope-total').innerText = fmt(scopeCreditSum);
+      syncRouteColorDots();
 
       document.getElementById('shop-credit-summary').innerHTML = shopListArr.length
         ? shopListArr.map(sc => `
             <div class="bg-stone-50 border border-stone-200 rounded-xl p-3 flex items-center justify-between">
               <div>
-                <div class="font-extrabold text-xs text-[#13311c]">${sc.shopName} <span class="font-normal text-stone-500">(${sc.custCode})</span></div>
+                <div class="font-extrabold text-xs text-[#13311c]">
+                  <span class="route-dot" style="background-color:${getRouteColorHex(sc.route)};margin-right:6px;"></span>
+                  ${sc.shopName} <span class="font-normal text-stone-500">(${sc.custCode})</span>
+                </div>
                 <div class="text-[11px] text-stone-500">${sc.route} · <strong>${sc.openCount}</strong> open bill(s)</div>
               </div>
               <div class="text-right">
@@ -1274,6 +1361,7 @@
               <div class="card-surface rounded-xl p-3 flex items-center justify-between gap-2">
                 <div>
                   <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="route-dot" style="background-color:${getRouteColorHex(b.route)};"></span>
                     <span class="font-extrabold text-xs text-[#13311c]">${b.id}</span>
                     <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${bal > 0 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">
                       ${bal > 0 ? 'Due: ' + fmt(bal) : 'SETTLED'}
@@ -1373,7 +1461,10 @@
       document.getElementById('shops-list').innerHTML = terrShops.map(s => `
         <div class="card-surface rounded-xl p-3 flex items-center justify-between">
           <div>
-            <div class="font-bold text-xs text-[#13311c]">${s.name} <span class="font-normal text-stone-500">(${s.custCode || "-"})</span></div>
+            <div class="font-bold text-xs text-[#13311c]">
+              <span class="route-dot" style="background-color:${getRouteColorHex(s.route)};margin-right:6px;"></span>
+              ${s.name} <span class="font-normal text-stone-500">(${s.custCode || "-"})</span>
+            </div>
             <div class="text-[11px] text-stone-500">${s.route}</div>
           </div>
           <div class="text-xs font-bold text-stone-700">Limit: ${fmt(s.limit)}</div>
