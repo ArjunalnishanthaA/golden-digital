@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -29,7 +30,6 @@
       border: 1px solid #e6e2d6;
     }
 
-    /* Epson LQ-310 2-Ply Continuous Dot-Matrix Print Layout */
     @media print {
       body * {
         visibility: hidden;
@@ -165,17 +165,57 @@
       </div>
     </section>
 
-    <!-- TAB 2: BILLS & QR PRINT -->
+    <!-- TAB 2: BILLS, PDF IMPORT & QR PRINT -->
     <section id="tab-bills" class="hidden space-y-4">
       <div class="flex items-center justify-between">
-        <h2 class="text-xl font-extrabold text-[#13311c]">Daily Bills & QR Print</h2>
+        <h2 class="text-xl font-extrabold text-[#13311c]">Daily Bills, PDF & QR Print</h2>
         <button onclick="openScannerModal()" class="brand-gold text-[#13311c] font-bold text-xs px-3 py-2 rounded-lg">
           📷 Evening QR Scan
         </button>
       </div>
 
+      <!-- SFA / Direct Sales PDF Import Box -->
+      <div class="card-surface rounded-2xl p-4 space-y-3 border-2 border-dashed border-[#13311c]/40">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <h3 class="font-bold text-sm text-[#13311c]">📄 Import SFA / Direct Sales PDF (20–50+ Bills)</h3>
+            <p class="text-[11px] text-stone-500">Upload daily PDF to extract bill rows & create bills for QR printing</p>
+          </div>
+          <label class="brand-green text-white text-xs font-bold px-3 py-2 rounded-xl cursor-pointer shrink-0">
+            Select PDF
+            <input type="file" accept="application/pdf" onchange="handlePdfUpload(event)" class="hidden" />
+          </label>
+        </div>
+
+        <div id="pdf-status" class="text-xs text-stone-600 hidden"></div>
+
+        <!-- Extracted Draft Bills List -->
+        <div id="pdf-draft-container" class="hidden space-y-3 pt-2 border-t border-stone-200">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-xs font-bold text-[#13311c]">Detected / Editable Draft Bills:</span>
+            <div class="flex items-center gap-2">
+              <select id="pdf-default-route" class="p-1.5 rounded-lg border border-stone-300 text-xs bg-white"></select>
+              <select id="pdf-default-type" class="p-1.5 rounded-lg border border-stone-300 text-xs bg-white">
+                <option value="Credit">Credit</option>
+                <option value="Cash">Cash</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="pdf-draft-rows" class="space-y-2 max-h-72 overflow-y-auto"></div>
+
+          <div class="flex gap-2">
+            <button onclick="addDraftRow()" class="px-3 py-2 bg-stone-200 text-stone-800 rounded-xl text-xs font-bold">+ Add Row</button>
+            <button onclick="saveAllDraftBills()" class="flex-1 brand-green text-white py-2.5 rounded-xl text-xs font-bold">
+              ✓ Save Selected Bills to System
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Single Manual Bill Form -->
       <div class="card-surface rounded-2xl p-4 space-y-3">
-        <h3 class="font-bold text-sm text-[#13311c]">Create New Invoice (Epson LQ-310 Ready)</h3>
+        <h3 class="font-bold text-sm text-[#13311c]">Create Single Invoice (Epson LQ-310 Ready)</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="text-xs font-semibold text-stone-600">Select Shop (12 Routes)</label>
@@ -381,6 +421,11 @@
   </div>
 
   <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
     const ROUTES = [
       "Anuradhapura - Route 01 (Town)",
       "Anuradhapura - Route 02 (New Town)",
@@ -429,6 +474,7 @@
     let db = JSON.parse(localStorage.getItem('gd_erp_db')) || defaultData;
     let html5QrCode = null;
     let activeSettleBillId = null;
+    let draftRows = [];
 
     function saveDB() {
       localStorage.setItem('gd_erp_db', JSON.stringify(db));
@@ -452,9 +498,9 @@
 
     function initSelects() {
       const routeSel = document.getElementById('shop-route');
-      if (routeSel) {
-        routeSel.innerHTML = ROUTES.map(r => `<option value="${r}">${r}</option>`).join('');
-      }
+      const pdfRouteSel = document.getElementById('pdf-default-route');
+      if (routeSel) routeSel.innerHTML = ROUTES.map(r => `<option value="${r}">${r}</option>`).join('');
+      if (pdfRouteSel) pdfRouteSel.innerHTML = ROUTES.map(r => `<option value="${r}">${r}</option>`).join('');
       updateShopSelects();
     }
 
@@ -466,6 +512,119 @@
       const chqShop = document.getElementById('chq-shop');
       if (billShop) billShop.innerHTML = opts;
       if (chqShop) chqShop.innerHTML = opts;
+    }
+
+    async function handlePdfUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const statusEl = document.getElementById('pdf-status');
+      statusEl.classList.remove('hidden');
+      statusEl.innerText = "Reading PDF pages...";
+
+      try {
+        const buffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+        const lines = [];
+
+        for (let p = 1; p <= pdf.numPages; p++) {
+          const page = await pdf.getPage(p);
+          const content = await page.getTextContent();
+          const text = content.items.map(item => item.str).join(' ').replace(/\s+/g, ' ').trim();
+          if (text) lines.push(text);
+        }
+
+        const fullText = lines.join('\n');
+        // Extract number sequences that look like invoice amounts (e.g. 12,500.00 or 45000)
+        const numberMatches = fullText.match(/\b\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?\b/g) || [];
+        const probableAmounts = numberMatches
+          .map(n => Number(n.replace(/,/g, '')))
+          .filter(n => n >= 500 && n <= 5000000);
+
+        draftRows = [];
+        const sampleCount = Math.min(Math.max(probableAmounts.length, 3), 50);
+
+        for (let i = 0; i < sampleCount; i++) {
+          draftRows.push({
+            selected: true,
+            shopName: `PDF Shop #${i + 1}`,
+            amount: probableAmounts[i] || 10000,
+            ref: `PDF-${file.name.slice(0, 8)}-${i + 1}`
+          });
+        }
+
+        statusEl.innerText = `Read ${pdf.numPages} page(s). Prepared ${draftRows.length} draft bill rows—verify shop names & amounts below before saving.`;
+        renderDraftRows();
+        document.getElementById('pdf-draft-container').classList.remove('hidden');
+      } catch (err) {
+        statusEl.innerText = "Could not extract text automatically (image/scanned PDF). You can add/edit rows manually below.";
+        draftRows = [{ selected: true, shopName: "Shop 1", amount: 0, ref: "PDF-ROW-1" }];
+        renderDraftRows();
+        document.getElementById('pdf-draft-container').classList.remove('hidden');
+      }
+    }
+
+    function renderDraftRows() {
+      const container = document.getElementById('pdf-draft-rows');
+      container.innerHTML = draftRows.map((r, idx) => `
+        <div class="bg-stone-50 border border-stone-200 rounded-xl p-2 flex items-center gap-2">
+          <input type="checkbox" ${r.selected ? 'checked' : ''} onchange="draftRows[${idx}].selected = this.checked" />
+          <input type="text" value="${r.shopName}" oninput="draftRows[${idx}].shopName = this.value" placeholder="Shop Name" class="flex-1 p-1.5 rounded border border-stone-300 text-xs bg-white" />
+          <input type="number" value="${r.amount}" oninput="draftRows[${idx}].amount = Number(this.value || 0)" placeholder="Amount" class="w-28 p-1.5 rounded border border-stone-300 text-xs bg-white" />
+        </div>
+      `).join('');
+    }
+
+    function addDraftRow() {
+      draftRows.push({
+        selected: true,
+        shopName: `Shop #${draftRows.length + 1}`,
+        amount: 0,
+        ref: `MANUAL-${draftRows.length + 1}`
+      });
+      renderDraftRows();
+    }
+
+    function saveAllDraftBills() {
+      const route = document.getElementById('pdf-default-route').value || ROUTES[0];
+      const type = document.getElementById('pdf-default-type').value || "Credit";
+      const today = daysAgo(0);
+      let addedCount = 0;
+
+      draftRows.forEach(r => {
+        if (!r.selected || r.amount <= 0) return;
+
+        let shop = db.shops.find(s => s.name.toLowerCase() === r.shopName.trim().toLowerCase());
+        if (!shop) {
+          shop = {
+            id: "S" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+            route,
+            name: r.shopName.trim() || "Imported Shop",
+            phone: "",
+            limit: 150000
+          };
+          db.shops.push(shop);
+        }
+
+        const billId = "GD-" + (1001 + db.bills.length);
+        db.bills.unshift({
+          id: billId,
+          shopId: shop.id,
+          date: today,
+          type,
+          amount: r.amount,
+          paid: type === 'Cash' ? r.amount : 0,
+          items: `Imported from PDF (${r.ref})`
+        });
+        addedCount++;
+      });
+
+      if (addedCount === 0) return alert("Select at least one row with an amount greater than 0.");
+
+      saveDB();
+      updateShopSelects();
+      document.getElementById('pdf-draft-container').classList.add('hidden');
+      alert(`Saved ${addedCount} bill(s)! Tap 'QR / Print' on any bill to print with QR.`);
     }
 
     function toggleChequeFields() {
@@ -588,7 +747,7 @@
       if (!bill) return;
       activeSettleBillId = billId;
       const shop = db.shops.find(s => s.id === bill.shopId);
-      const bal = Math.max(0, bill.amount - bill.paid);
+      const bal = Math.max(0, bill.amount - b.paid);
 
       document.getElementById('settle-info').innerText =
         `${bill.id} · ${shop ? shop.name : ''} | Current Balance: ${fmt(bal)}`;
