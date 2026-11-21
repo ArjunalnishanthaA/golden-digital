@@ -163,7 +163,7 @@
       </div>
 
       <p class="text-[11px] text-center text-stone-500">
-        Anuradhapura login cannot access or modify Mihintale credit/bills, and vice versa.
+        Anuradhapura Rep bills cannot be processed in Mihintale login, and Mihintale Rep bills cannot be processed in Anuradhapura login.
       </p>
     </div>
   </div>
@@ -240,7 +240,7 @@
       <div class="flex items-center justify-between">
         <div>
           <h2 id="sfa-heading" class="text-xl font-extrabold text-[#13311c]">SFA Invoice + Top-Right QR</h2>
-          <p id="sfa-subheading" class="text-xs text-stone-500">Locked to active territory</p>
+          <p id="sfa-subheading" class="text-xs text-stone-500">Auto-locks by Anuradhapura Rep / Mihinthale Rep in PDF</p>
         </div>
         <button onclick="switchTab('credit')" class="brand-gold text-[#13311c] font-bold text-xs px-3 py-2 rounded-lg">
           Credit Tab →
@@ -251,7 +251,7 @@
         <div class="flex items-center justify-between gap-2">
           <div>
             <h3 class="font-bold text-sm text-[#13311c]">📄 Upload Freelan SFA / Direct Sales PDF</h3>
-            <p class="text-[11px] text-stone-500">Exact invoice details preserved + clear QR on Top-Right</p>
+            <p class="text-[11px] text-stone-500">Full bill info embedded in QR + Cancel/Return icons supported</p>
           </div>
           <label class="brand-green text-white text-xs font-bold px-3 py-2.5 rounded-xl cursor-pointer shrink-0">
             Upload PDF
@@ -265,9 +265,9 @@
           <div>
             <label class="text-[11px] font-semibold text-stone-600">QR Size</label>
             <select id="qr-size-select" onchange="rerenderAllPageQRs()" class="w-full mt-1 p-2 rounded-lg border border-stone-300 text-xs bg-white">
-              <option value="96">Medium (96px)</option>
-              <option value="120" selected>High Contrast Scan (120px)</option>
-              <option value="144">Large (144px)</option>
+              <option value="104">Medium (104px)</option>
+              <option value="128" selected>Full Data QR (128px)</option>
+              <option value="152">Large (152px)</option>
             </select>
           </div>
           <div>
@@ -288,13 +288,23 @@
       <div id="sfa-pages-container" class="space-y-4"></div>
     </section>
 
-    <!-- TAB 3: CREDIT (QR SCANNER, REP/CASH TALLY & PRINTABLE DISPATCH SHEET) -->
+    <!-- TAB 3: CREDIT (QR SCANNER, CANCEL ICONS, RETURN SCAN/ENTRY & DISPATCH SHEET) -->
     <section id="tab-credit" class="hidden space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 id="credit-heading" class="text-xl font-extrabold text-[#13311c]">Credit Control & QR Scanner</h2>
           <p id="credit-subheading" class="text-xs text-stone-500">Only active territory bills & QR codes can be scanned or settled here</p>
         </div>
+      </div>
+
+      <!-- Icon Legend -->
+      <div class="card-surface rounded-xl px-3.5 py-2.5 flex flex-wrap items-center gap-3 text-[11px]">
+        <span class="font-bold text-[#13311c]">Icons:</span>
+        <span>🚫 <strong>Full Cancel</strong></span>
+        <span>⚠️ <strong>Partial Cancel</strong></span>
+        <span>📦 <strong>Expire Return</strong></span>
+        <span>💥 <strong>Damage Return</strong></span>
+        <span>🏭 <strong>Production Fault</strong></span>
       </div>
 
       <!-- Scanned Sheet / Dispatch Summary & Print Controls -->
@@ -332,7 +342,7 @@
       <!-- QR Scanner Box -->
       <div class="card-surface rounded-2xl p-4 space-y-3 border-2 border-[#13311c]/20">
         <div class="flex flex-wrap items-center justify-between gap-2">
-          <h3 class="font-extrabold text-sm text-[#13311c]">📷 QR Bill Scanner (Morning Dispatch & Evening Collection)</h3>
+          <h3 class="font-extrabold text-sm text-[#13311c]">📷 QR Bill Scanner (Bills, Cancels & Returns)</h3>
           <div class="flex gap-2">
             <button onclick="startCameraScan()" class="brand-green text-white text-xs font-bold px-3 py-1.5 rounded-lg">Start Camera</button>
             <button onclick="stopCameraScan()" class="bg-stone-200 text-stone-800 text-xs font-bold px-3 py-1.5 rounded-lg">Stop</button>
@@ -351,7 +361,7 @@
             <option value="">-- Select Bill in Active Territory --</option>
           </select>
           <div class="flex gap-2">
-            <input id="manual-qr-code" type="text" placeholder="Enter QR / Bill ID" class="flex-1 p-2.5 rounded-xl border border-stone-300 text-xs bg-white" />
+            <input id="manual-qr-code" type="text" placeholder="Enter QR / Bill ID or QR JSON" class="flex-1 p-2.5 rounded-xl border border-stone-300 text-xs bg-white" />
             <button onclick="openBillSettlement(document.getElementById('manual-qr-code').value.trim())" class="bg-[#13311c] text-white text-xs font-bold px-3 rounded-xl">Load</button>
           </div>
         </div>
@@ -359,16 +369,44 @@
         <!-- Scanned / Selected Bill Action Card -->
         <div id="active-bill-card" class="hidden bg-[#f9f8f4] border-2 border-[#13311c] rounded-2xl p-4 space-y-3">
           <div class="flex items-start justify-between gap-2">
-            <div>
+            <div class="space-y-0.5">
               <div id="ab-code" class="font-extrabold text-base text-[#13311c]"></div>
               <div id="ab-shop-route" class="text-xs font-semibold text-stone-700"></div>
               <div id="ab-cust-code" class="text-[11px] text-stone-600"></div>
-              <div id="ab-status" class="text-[11px] font-bold text-amber-800 mt-0.5"></div>
+              <div id="ab-flags" class="flex flex-wrap gap-1.5 pt-1"></div>
+              <div id="ab-status" class="text-[11px] font-bold text-amber-800 pt-0.5"></div>
             </div>
             <div class="text-right">
               <div class="text-[10px] text-stone-500 uppercase">Current Outstanding</div>
               <div id="ab-balance" class="text-lg font-extrabold text-red-700"></div>
               <div id="ab-breakdown" class="text-[11px] text-stone-600"></div>
+            </div>
+          </div>
+
+          <!-- Cancel Status & Return Scan/Log Controls -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-stone-200">
+            <div>
+              <label class="text-[11px] font-semibold text-stone-600">Cancel Status (🚫 Full / ⚠️ Partial)</label>
+              <select id="ab-cancel-type" onchange="updateBillCancelType(this.value)" class="w-full mt-1 p-2 rounded-lg border border-stone-300 text-xs bg-white">
+                <option value="NONE">No Cancel</option>
+                <option value="PARTIAL_CANCEL">⚠️ Partial Cancel (Some/1 Item Cancelled)</option>
+                <option value="FULL_CANCEL">🚫 Full Cancel (All Items Cancelled)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[11px] font-semibold text-stone-600">Return Type (📦 Expire / 💥 Damage / 🏭 Fault)</label>
+              <div class="flex gap-1.5 mt-1">
+                <select id="ab-return-type" class="p-2 rounded-lg border border-stone-300 text-xs bg-white">
+                  <option value="NONE">No Return</option>
+                  <option value="EXPIRE">📦 Expire</option>
+                  <option value="DAMAGE">💥 Damage</option>
+                  <option value="PRODUCTION_FAULT">🏭 Production Fault</option>
+                </select>
+                <input id="ab-return-amt" type="number" placeholder="Return Rs." class="w-24 p-2 rounded-lg border border-stone-300 text-xs bg-white" />
+                <button onclick="saveBillReturnDetails()" class="bg-[#13311c] text-white text-xs font-bold px-2.5 rounded-lg shrink-0">
+                  Save Return
+                </button>
+              </div>
             </div>
           </div>
 
@@ -404,9 +442,9 @@
         </div>
       </div>
 
-      <!-- Add Credit Bill -->
+      <!-- Add Credit Bill (with Cancel & Return Options) -->
       <div class="card-surface rounded-2xl p-4 space-y-3">
-        <h3 id="add-cr-heading" class="font-bold text-sm text-[#13311c]">+ Add Daily Credit Bill</h3>
+        <h3 id="add-cr-heading" class="font-bold text-sm text-[#13311c]">+ Add Daily Credit / Return / Cancel Bill</h3>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <div class="flex items-center gap-2">
             <span id="new-cr-route-dot" class="route-dot"></span>
@@ -415,10 +453,24 @@
           <input id="new-cr-shop" type="text" placeholder="Shop Name" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
           <input id="new-cr-cust-code" type="text" placeholder="Outlet ID / Cust Code (e.g. R187-000082)" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <input id="new-cr-amount" type="number" placeholder="Credit Amount (Rs.)" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+          <input id="new-cr-amount" type="number" placeholder="Bill Amount (Rs.)" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
+          <select id="new-cr-cancel" class="p-2.5 rounded-xl border border-stone-300 text-xs bg-white">
+            <option value="NONE">No Cancel</option>
+            <option value="PARTIAL_CANCEL">⚠️ Partial Cancel</option>
+            <option value="FULL_CANCEL">🚫 Full Cancel</option>
+          </select>
+          <select id="new-cr-return-type" class="p-2.5 rounded-xl border border-stone-300 text-xs bg-white">
+            <option value="NONE">No Return</option>
+            <option value="EXPIRE">📦 Expire</option>
+            <option value="DAMAGE">💥 Damage</option>
+            <option value="PRODUCTION_FAULT">🏭 Production Fault</option>
+          </select>
+          <input id="new-cr-return-amt" type="number" placeholder="Return Rs. (if any)" class="p-2.5 rounded-xl border border-stone-300 text-xs" />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <select id="new-cr-carrier" class="p-2.5 rounded-xl border border-stone-300 text-xs bg-white"></select>
-          <button onclick="addCreditBillManual()" class="brand-green text-white font-bold py-2.5 rounded-xl text-xs">+ Add Credit Bill</button>
+          <button onclick="addCreditBillManual()" class="brand-green text-white font-bold py-2.5 rounded-xl text-xs">+ Save Bill</button>
         </div>
       </div>
 
@@ -457,7 +509,7 @@
         </div>
 
         <div>
-          <h4 class="text-xs font-bold text-[#13311c] mb-2">Credit Bills in Active Territory</h4>
+          <h4 class="text-xs font-bold text-[#13311c] mb-2">Credit, Cancel & Return Bills in Active Territory</h4>
           <div id="credit-bills-list" class="space-y-2"></div>
         </div>
       </div>
@@ -467,7 +519,6 @@
     <section id="tab-shops" class="hidden space-y-4">
       <h2 id="shops-heading" class="text-xl font-extrabold text-[#13311c]">Territory Routes & Shops</h2>
 
-      <!-- Color-Coded Route Legend Card -->
       <div class="card-surface rounded-2xl p-4 space-y-2">
         <h3 id="route-legend-title" class="font-bold text-sm text-[#13311c]">Route Color Codes</h3>
         <div id="route-color-legend" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
@@ -612,6 +663,46 @@
       ]
     };
 
+    function getCancelBadgeHtml(cancelType) {
+      if (cancelType === "FULL_CANCEL") {
+        return `<span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-red-100 text-red-800 border border-red-300">🚫 FULL CANCEL</span>`;
+      }
+      if (cancelType === "PARTIAL_CANCEL") {
+        return `<span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-orange-100 text-orange-900 border border-orange-300">⚠️ PARTIAL CANCEL</span>`;
+      }
+      return "";
+    }
+
+    function getReturnBadgeHtml(returnType, returnAmt) {
+      if (!returnType || returnType === "NONE") return "";
+      const amtText = Number(returnAmt || 0) > 0 ? ` (${fmt(returnAmt)})` : "";
+      if (returnType === "EXPIRE") {
+        return `<span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-purple-100 text-purple-900 border border-purple-300">📦 EXPIRE${amtText}</span>`;
+      }
+      if (returnType === "DAMAGE") {
+        return `<span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-rose-100 text-rose-900 border border-rose-300">💥 DAMAGE${amtText}</span>`;
+      }
+      if (returnType === "PRODUCTION_FAULT") {
+        return `<span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-sky-100 text-sky-900 border border-sky-300">🏭 PROD FAULT${amtText}</span>`;
+      }
+      return "";
+    }
+
+    function buildEmbeddedQrPayload(bill) {
+      return JSON.stringify({
+        t: bill.territory === "Mihintale" ? "MH" : "AN",
+        id: bill.id,
+        s: bill.shopName,
+        c: bill.custCode || "",
+        d: bill.date || daysAgo(0),
+        a: Number(bill.amount || 0),
+        p: Number(bill.paid || 0),
+        cn: bill.cancelType || "NONE",
+        rt: bill.returnType || "NONE",
+        ra: Number(bill.returnAmt || 0)
+      });
+    }
+
     function getRouteColorHex(routeLabel) {
       if (!routeLabel || routeLabel === "ALL") return "#e8b339";
       for (const terr of Object.keys(TERRITORY_ROUTES)) {
@@ -655,10 +746,10 @@
         { id: "S4", territory: "Mihintale", route: TERRITORY_ROUTES.Mihintale[4].label, name: "NO Super", custCode: "CUS25634", limit: 150000 }
       ],
       bills: [
-        { id: "AN-1001", territory: "Anuradhapura", shopName: "Pubudupura Stores", custCode: "R186-000010", route: TERRITORY_ROUTES.Anuradhapura[0].label, date: daysAgo(2), amount: 8650, paid: 0, carrier: "Rep: Mr. Kapila", dispatchedMorning: true, lastAction: "Morning Dispatched" },
-        { id: "AN-1002", territory: "Anuradhapura", shopName: "Hidogama Trade Mart", custCode: "R186-000025", route: TERRITORY_ROUTES.Anuradhapura[1].label, date: daysAgo(6), amount: 14500, paid: 4500, carrier: "Cash Collector: Mr. Saman", dispatchedMorning: true, lastAction: "Partial Paid Rs. 4,500" },
-        { id: "MH-1003", territory: "Mihintale", shopName: "Premadasa Stores", custCode: "R187-000082", route: TERRITORY_ROUTES.Mihintale[2].label, date: daysAgo(1), amount: 42000, paid: 0, carrier: "Rep: Mr. Sugath", dispatchedMorning: true, lastAction: "Morning Dispatched" },
-        { id: "MH-1004", territory: "Mihintale", shopName: "NO Super", custCode: "CUS25634", route: TERRITORY_ROUTES.Mihintale[4].label, date: daysAgo(4), amount: 28000, paid: 0, carrier: "Cash Collector: Mr. Nisal", dispatchedMorning: false, lastAction: "Credit Logged" }
+        { id: "AN-1001", territory: "Anuradhapura", shopName: "Pubudupura Stores", custCode: "R186-000010", route: TERRITORY_ROUTES.Anuradhapura[0].label, date: daysAgo(2), amount: 8650, paid: 0, cancelType: "PARTIAL_CANCEL", returnType: "EXPIRE", returnAmt: 1200, carrier: "Rep: Mr. Kapila", dispatchedMorning: true, lastAction: "Partial Cancel + Expire Return" },
+        { id: "AN-1002", territory: "Anuradhapura", shopName: "Hidogama Trade Mart", custCode: "R186-000025", route: TERRITORY_ROUTES.Anuradhapura[1].label, date: daysAgo(6), amount: 14500, paid: 4500, cancelType: "NONE", returnType: "DAMAGE", returnAmt: 950, carrier: "Cash Collector: Mr. Saman", dispatchedMorning: true, lastAction: "Damage Return Logged" },
+        { id: "MH-1003", territory: "Mihintale", shopName: "Premadasa Stores", custCode: "R187-000082", route: TERRITORY_ROUTES.Mihintale[2].label, date: daysAgo(1), amount: 42000, paid: 0, cancelType: "FULL_CANCEL", returnType: "NONE", returnAmt: 0, carrier: "Rep: Mr. Sugath", dispatchedMorning: true, lastAction: "Full Cancel Bill" },
+        { id: "MH-1004", territory: "Mihintale", shopName: "NO Super", custCode: "CUS25634", route: TERRITORY_ROUTES.Mihintale[4].label, date: daysAgo(4), amount: 28000, paid: 0, cancelType: "NONE", returnType: "PRODUCTION_FAULT", returnAmt: 2300, carrier: "Cash Collector: Mr. Nisal", dispatchedMorning: false, lastAction: "Production Fault Return" }
       ],
       cheques: [
         { id: "C1", territory: "Anuradhapura", shopName: "Pubudupura Stores", number: "458921", bank: "BOC", amount: 24400, date: daysAgo(0), status: "Pending" },
@@ -670,7 +761,7 @@
       }
     };
 
-    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v4')) || defaultData;
+    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v5')) || defaultData;
     if (!db.scannedTodayByTerr) db.scannedTodayByTerr = { Anuradhapura: [], Mihintale: [] };
 
     let activeTerritory = sessionStorage.getItem('gd_active_territory') || null;
@@ -721,15 +812,15 @@
       document.getElementById('header-agency-sub').innerText = `${staff[0]} · ${staff[1]}`;
 
       document.getElementById('dash-heading').innerText = `${activeTerritory} Dashboard`;
-      document.getElementById('dash-subheading').innerText = `Strict lock: ${activeTerritory} data only`;
+      document.getElementById('dash-subheading').innerText = `Strict lock: ${activeTerritory} Rep bills only`;
       document.getElementById('dash-credit-label').innerText = `${activeTerritory} Outstanding Credit`;
 
-      document.getElementById('sfa-heading').innerText = `${activeTerritory} SFA + Top-Right QR`;
-      document.getElementById('sfa-subheading').innerText = `Bills & QR logged to ${activeTerritory} only`;
+      document.getElementById('sfa-heading').innerText = `${activeTerritory} SFA + Full-Data QR`;
+      document.getElementById('sfa-subheading').innerText = `Detects Anuradhapura Rep / Mihinthale Rep from PDF`;
 
-      document.getElementById('credit-heading').innerText = `${activeTerritory} Credit & QR Scanner`;
+      document.getElementById('credit-heading').innerText = `${activeTerritory} Credit, Cancel & Return QR`;
       document.getElementById('credit-subheading').innerText = `${staff[0]} | ${staff[1]} · Cross-territory blocked`;
-      document.getElementById('add-cr-heading').innerText = `+ Add ${activeTerritory} Credit Bill`;
+      document.getElementById('add-cr-heading').innerText = `+ Add ${activeTerritory} Credit / Return / Cancel Bill`;
 
       document.getElementById('shops-heading').innerText = `${activeTerritory} Routes & Shops`;
       document.getElementById('route-legend-title').innerText = `${activeTerritory} Route Color Codes`;
@@ -759,7 +850,7 @@
     }
 
     function saveDB() {
-      localStorage.setItem('gd_strict_agency_v4', JSON.stringify(db));
+      localStorage.setItem('gd_strict_agency_v5', JSON.stringify(db));
       refreshAll();
     }
 
@@ -780,7 +871,36 @@
       if (tab !== 'credit') stopCameraScan();
     }
 
-    /* ---------------- PDF + TOP-RIGHT QR ---------------- */
+    /* ---------------- PDF TERRITORY DETECTION + FULL-DATA TOP-RIGHT QR ---------------- */
+    function detectTerritoryFromPdfText(text, fallbackTerr) {
+      const clean = (text || "").toLowerCase();
+      if (/mihin?thale\s*rep|mihin?thale\s*agency|mihin?thale/i.test(clean) && !/anuradh?apura\s*rep/i.test(clean)) {
+        return "Mihintale";
+      }
+      if (/anuradh?apura\s*rep|anuradapura\s*rep|anuradh?apura\s*agency/i.test(clean)) {
+        return "Anuradhapura";
+      }
+      if (/mihin?thale/i.test(clean)) {
+        return "Mihintale";
+      }
+      return fallbackTerr;
+    }
+
+    function detectCancelFromPdfText(text) {
+      const clean = (text || "").toLowerCase();
+      if (/\b(full\s*cancel|cancelled\s*bill|all\s*cancel)\b/i.test(clean)) return "FULL_CANCEL";
+      if (/\b(partial\s*cancel|item\s*cancel|cancel\s*qty)\b/i.test(clean)) return "PARTIAL_CANCEL";
+      return "NONE";
+    }
+
+    function detectReturnFromPdfText(text) {
+      const clean = (text || "").toLowerCase();
+      if (/\b(production\s*fault|prod\s*fault|mfg\s*fault)\b/i.test(clean)) return "PRODUCTION_FAULT";
+      if (/\b(damage|damaged)\b/i.test(clean)) return "DAMAGE";
+      if (/\b(expire|expired|expiry)\b/i.test(clean)) return "EXPIRE";
+      return "NONE";
+    }
+
     async function handleSfaPdf(event) {
       if (!activeTerritory) return;
       const file = event.target.files[0];
@@ -789,27 +909,32 @@
       const prog = document.getElementById('pdf-progress');
       const container = document.getElementById('sfa-pages-container');
       prog.classList.remove('hidden');
-      prog.innerText = `Loading ${file.name} for ${activeTerritory}...`;
+      prog.innerText = `Loading ${file.name}...`;
       container.innerHTML = "";
       renderedPages = [];
 
       try {
         const buffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
-        const prefix = activeTerritory === "Mihintale" ? "MH" : "AN";
 
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-          prog.innerText = `Rendering page ${pageNum} of ${pdf.numPages} with Top-Right QR...`;
+          prog.innerText = `Reading page ${pageNum} of ${pdf.numPages} & embedding full bill QR...`;
           const page = await pdf.getPage(pageNum);
           const textContent = await page.getTextContent();
           const pageText = textContent.items.map(i => i.str).join(' ');
 
+          const detectedTerr = detectTerritoryFromPdfText(pageText, activeTerritory);
+          const prefix = detectedTerr === "Mihintale" ? "MH" : "AN";
+
           const invMatch = pageText.match(/(?:Invoice\s*No\.?|INV|BILL)\s*[:\-]?\s*([A-Z0-9_\-]+)/i);
           const codeBase = invMatch ? invMatch[1].replace(/[^A-Z0-9_\-]/gi, '').slice(0, 18) : `SFA-${pageNum}`;
-          const qrCodeValue = `${prefix}-${codeBase}-P${pageNum}`;
+          const billId = `${prefix}-${codeBase}-P${pageNum}`;
 
           const custMatch = pageText.match(/\b((?:R\d{2,3}|CUS)\d{0,4}-?\d{3,7})\b/i);
           const detectedCustCode = custMatch ? custMatch[1].toUpperCase() : `CUST-${pageNum}`;
+
+          const dateMatch = pageText.match(/\b(\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4})\b/);
+          const detectedDate = dateMatch ? dateMatch[1] : daysAgo(0);
 
           const nums = (pageText.match(/\b\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?\b/g) || [])
             .map(n => Number(n.replace(/,/g, '')))
@@ -817,7 +942,23 @@
           const detectedAmount = nums.length ? nums[nums.length - 1] : 0;
 
           const shopMatch = pageText.match(/Invoiced\s*To\s*:\s*([A-Za-z0-9\s&.\-]+)/i);
-          const detectedShop = shopMatch ? shopMatch[1].trim().slice(0, 32) : `${activeTerritory} Shop ${pageNum}`;
+          const detectedShop = shopMatch ? shopMatch[1].trim().slice(0, 32) : `${detectedTerr} Shop ${pageNum}`;
+
+          const cancelType = detectCancelFromPdfText(pageText);
+          const returnType = detectReturnFromPdfText(pageText);
+
+          const qrPayload = JSON.stringify({
+            t: detectedTerr === "Mihintale" ? "MH" : "AN",
+            id: billId,
+            s: detectedShop,
+            c: detectedCustCode,
+            d: detectedDate,
+            a: detectedAmount,
+            p: 0,
+            cn: cancelType,
+            rt: returnType,
+            ra: 0
+          });
 
           const viewport = page.getViewport({ scale: 1.6 });
           const canvas = document.createElement('canvas');
@@ -829,14 +970,19 @@
           renderedPages.push({
             pageNum,
             imgSrc: canvas.toDataURL('image/png'),
-            qrCodeValue,
+            billId,
+            qrPayload,
+            detectedTerr,
             detectedAmount,
             detectedShop,
-            detectedCustCode
+            detectedCustCode,
+            detectedDate,
+            cancelType,
+            returnType
           });
         }
 
-        prog.innerText = `Ready: ${renderedPages.length} page(s) for ${activeTerritory} with Top-Right QR.`;
+        prog.innerText = `Ready: ${renderedPages.length} page(s) rendered with full bill info inside QR.`;
         document.getElementById('pdf-controls').classList.remove('hidden');
         syncRouteColorDots();
         renderSfaCards();
@@ -846,42 +992,52 @@
     }
 
     function getQrPx() {
-      return Number(document.getElementById('qr-size-select')?.value || 120);
+      return Number(document.getElementById('qr-size-select')?.value || 128);
     }
 
     function renderSfaCards() {
       const container = document.getElementById('sfa-pages-container');
       const qrSize = getQrPx();
 
-      container.innerHTML = renderedPages.map((p, idx) => `
-        <div class="card-surface rounded-2xl p-3 space-y-3">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <div class="text-xs font-extrabold text-[#13311c]">Page ${p.pageNum} · QR: ${p.qrCodeValue} (${activeTerritory})</div>
-              <div class="text-[11px] text-stone-500">Shop: ${p.detectedShop} · Code: ${p.detectedCustCode}</div>
+      container.innerHTML = renderedPages.map((p, idx) => {
+        const lockedElsewhere = p.detectedTerr !== activeTerritory;
+        return `
+          <div class="card-surface rounded-2xl p-3 space-y-3 ${lockedElsewhere ? 'border-red-400 bg-red-50/30' : ''}">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="text-xs font-extrabold text-[#13311c]">Page ${p.pageNum} · ${p.billId}</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold ${lockedElsewhere ? 'bg-red-100 text-red-800' : 'bg-emerald-100 text-emerald-800'}">
+                    ${p.detectedTerr} Rep ${lockedElsewhere ? '(LOCKED - Switch Agency)' : '(Active)'}
+                  </span>
+                  ${getCancelBadgeHtml(p.cancelType)}
+                  ${getReturnBadgeHtml(p.returnType, 0)}
+                </div>
+                <div class="text-[11px] text-stone-500 mt-0.5">Shop: ${p.detectedShop} · Code: ${p.detectedCustCode} · Date: ${p.detectedDate}</div>
+              </div>
+              <div class="flex flex-wrap items-center gap-1.5">
+                <input type="text" id="pdf-shop-${idx}" value="${p.detectedShop}" placeholder="Shop Name" class="w-28 p-1.5 rounded-lg border border-stone-300 text-xs" />
+                <input type="text" id="pdf-cust-${idx}" value="${p.detectedCustCode}" placeholder="Cust Code" class="w-24 p-1.5 rounded-lg border border-stone-300 text-xs" />
+                <input type="number" id="pdf-amt-${idx}" value="${p.detectedAmount}" placeholder="Rs." class="w-24 p-1.5 rounded-lg border border-stone-300 text-xs" />
+                <button onclick="saveSfaPageToCredit(${idx})" class="bg-emerald-800 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg">
+                  + Save Bill
+                </button>
+                <button onclick="printSinglePage(${idx})" class="brand-green text-white text-xs font-bold px-3 py-1.5 rounded-lg">
+                  🖨️ Print
+                </button>
+              </div>
             </div>
-            <div class="flex flex-wrap items-center gap-1.5">
-              <input type="text" id="pdf-shop-${idx}" value="${p.detectedShop}" placeholder="Shop Name" class="w-28 p-1.5 rounded-lg border border-stone-300 text-xs" />
-              <input type="text" id="pdf-cust-${idx}" value="${p.detectedCustCode}" placeholder="Cust Code" class="w-24 p-1.5 rounded-lg border border-stone-300 text-xs" />
-              <input type="number" id="pdf-amt-${idx}" value="${p.detectedAmount}" placeholder="Rs." class="w-24 p-1.5 rounded-lg border border-stone-300 text-xs" />
-              <button onclick="saveSfaPageToCredit(${idx})" class="bg-emerald-800 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg">
-                + ${activeTerritory} Credit
-              </button>
-              <button onclick="printSinglePage(${idx})" class="brand-green text-white text-xs font-bold px-3 py-1.5 rounded-lg">
-                🖨️ Print
-              </button>
-            </div>
-          </div>
 
-          <div id="sheet-card-${idx}" class="invoice-sheet border border-stone-300 rounded-lg">
-            <img src="${p.imgSrc}" alt="SFA Invoice Page ${p.pageNum}" />
-            <div class="qr-top-right" style="max-width: ${qrSize + 18}px;">
-              <div id="qr-box-${idx}"></div>
-              <div class="qr-caption">${p.qrCodeValue}</div>
+            <div id="sheet-card-${idx}" class="invoice-sheet border border-stone-300 rounded-lg">
+              <img src="${p.imgSrc}" alt="SFA Invoice Page ${p.pageNum}" />
+              <div class="qr-top-right" style="max-width: ${qrSize + 18}px;">
+                <div id="qr-box-${idx}"></div>
+                <div class="qr-caption">${p.billId} · ${p.detectedTerr === 'Mihintale' ? 'MH' : 'AN'}</div>
+              </div>
             </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
 
       rerenderAllPageQRs();
     }
@@ -895,30 +1051,33 @@
         if (badge) badge.style.maxWidth = `${qrSize + 18}px`;
         box.innerHTML = "";
         new QRCode(box, {
-          text: p.qrCodeValue,
+          text: p.qrPayload,
           width: qrSize,
           height: qrSize,
-          correctLevel: QRCode.CorrectLevel.H
+          correctLevel: QRCode.CorrectLevel.M
         });
       });
     }
 
     function saveSfaPageToCredit(idx) {
-      if (!activeTerritory) return;
       const p = renderedPages[idx];
       if (!p) return;
+      if (p.detectedTerr !== activeTerritory) {
+        return alert(`Blocked: This bill belongs to ${p.detectedTerr} Rep. Switch to ${p.detectedTerr} Agency to save or process it.`);
+      }
+
       const shopName = (document.getElementById(`pdf-shop-${idx}`)?.value || p.detectedShop || "Shop").trim();
       const custCode = (document.getElementById(`pdf-cust-${idx}`)?.value || p.detectedCustCode || "").trim();
       const amount = Number(document.getElementById(`pdf-amt-${idx}`)?.value || p.detectedAmount || 0);
       const route = document.getElementById('pdf-route-select')?.value || TERRITORY_ROUTES[activeTerritory][0].label;
       const staff = TERRITORY_STAFF[activeTerritory][0];
 
-      if (amount <= 0) return alert("Enter bill amount (Rs.) to log credit.");
+      if (amount <= 0) return alert("Enter bill amount (Rs.) to save.");
 
-      const existing = db.bills.find(b => b.id.toLowerCase() === p.qrCodeValue.toLowerCase());
+      const existing = db.bills.find(b => b.id.toLowerCase() === p.billId.toLowerCase());
       if (existing) {
         if (existing.territory !== activeTerritory) {
-          return alert(`Blocked: ${p.qrCodeValue} belongs to ${existing.territory} agency.`);
+          return alert(`Blocked: ${p.billId} belongs to ${existing.territory}.`);
         }
         existing.shopName = shopName;
         existing.custCode = custCode || existing.custCode;
@@ -927,21 +1086,24 @@
         existing.lastAction = "Updated from SFA PDF";
       } else {
         db.bills.unshift({
-          id: p.qrCodeValue,
+          id: p.billId,
           territory: activeTerritory,
           shopName,
           custCode,
           route,
-          date: daysAgo(0),
+          date: p.detectedDate || daysAgo(0),
           amount,
           paid: 0,
+          cancelType: p.cancelType || "NONE",
+          returnType: p.returnType || "NONE",
+          returnAmt: 0,
           carrier: staff,
           dispatchedMorning: true,
           lastAction: "Added from SFA PDF"
         });
       }
       saveDB();
-      alert(`Saved ${p.qrCodeValue} (${shopName} - ${fmt(amount)}) under ${activeTerritory}!`);
+      alert(`Saved ${p.billId} (${shopName} - ${fmt(amount)}) under ${activeTerritory}!`);
     }
 
     function printSinglePage(idx) {
@@ -956,10 +1118,10 @@
       if (cloneQrBox && renderedPages[idx]) {
         cloneQrBox.innerHTML = "";
         new QRCode(cloneQrBox, {
-          text: renderedPages[idx].qrCodeValue,
+          text: renderedPages[idx].qrPayload,
           width: qrSize,
           height: qrSize,
-          correctLevel: QRCode.CorrectLevel.H
+          correctLevel: QRCode.CorrectLevel.M
         });
       }
       stage.appendChild(clone);
@@ -985,10 +1147,10 @@
         if (cloneQrBox) {
           cloneQrBox.innerHTML = "";
           new QRCode(cloneQrBox, {
-            text: p.qrCodeValue,
+            text: p.qrPayload,
             width: qrSize,
             height: qrSize,
-            correctLevel: QRCode.CorrectLevel.H
+            correctLevel: QRCode.CorrectLevel.M
           });
         }
         stage.appendChild(clone);
@@ -1009,7 +1171,7 @@
       if (!list.includes(billId)) {
         list.push(billId);
         db.scannedTodayByTerr[activeTerritory] = list;
-        localStorage.setItem('gd_strict_agency_v4', JSON.stringify(db));
+        localStorage.setItem('gd_strict_agency_v5', JSON.stringify(db));
         updateScannedSheetBanner();
       }
     }
@@ -1046,11 +1208,13 @@
       const rowsHtml = targetBills.map((b, i) => {
         const bal = Math.max(0, b.amount - b.paid);
         totalOutstanding += bal;
+        const cancelTag = b.cancelType === "FULL_CANCEL" ? " [FULL CANCEL]" : (b.cancelType === "PARTIAL_CANCEL" ? " [PARTIAL CANCEL]" : "");
+        const retTag = b.returnType && b.returnType !== "NONE" ? ` [${b.returnType} ${fmt(b.returnAmt || 0)}]` : "";
         return `
           <tr>
             <td>${i + 1}</td>
             <td>${b.date || todayStr}</td>
-            <td><strong>${b.shopName}</strong><br/><small>${b.id}</small></td>
+            <td><strong>${b.shopName}</strong>${cancelTag}${retTag}<br/><small>${b.id}</small></td>
             <td>${b.custCode || "-"}</td>
             <td style="text-align:right;"><strong>${fmt(bal)}</strong></td>
           </tr>
@@ -1109,7 +1273,7 @@
       }, 450);
     }
 
-    /* ---------------- QR SCANNER & STRICT TERRITORY ENFORCEMENT ---------------- */
+    /* ---------------- QR SCANNER & FULL EMBEDDED DATA PARSER ---------------- */
     async function startCameraScan() {
       const statusEl = document.getElementById('qr-scanner-status');
       if (!window.Html5Qrcode) {
@@ -1165,15 +1329,27 @@
       }
     }
 
-    function openBillSettlement(rawCode) {
-      if (!rawCode || !activeTerritory) return;
+    function openBillSettlement(rawInput) {
+      if (!rawInput || !activeTerritory) return;
       const statusEl = document.getElementById('qr-scanner-status');
-      let bill = db.bills.find(b => b.id.toLowerCase() === rawCode.toLowerCase());
 
-      if (bill && bill.territory !== activeTerritory) {
+      let parsedQr = null;
+      let lookupId = rawInput.trim();
+      if (lookupId.startsWith('{')) {
+        try {
+          parsedQr = JSON.parse(lookupId);
+          if (parsedQr && parsedQr.id) lookupId = String(parsedQr.id).trim();
+        } catch (e) {}
+      }
+
+      const qrTerr = parsedQr?.t === "MH" ? "Mihintale" : (parsedQr?.t === "AN" ? "Anuradhapura" : null);
+      let bill = db.bills.find(b => b.id.toLowerCase() === lookupId.toLowerCase());
+
+      const actualTerr = bill ? bill.territory : qrTerr;
+      if (actualTerr && actualTerr !== activeTerritory) {
         document.getElementById('active-bill-card').classList.add('hidden');
-        statusEl.innerText = `Access Denied: Bill ${bill.id} belongs to ${bill.territory}. Switch to ${bill.territory} login.`;
-        alert(`Access Denied: ${bill.id} belongs to ${bill.territory}. You are currently logged into ${activeTerritory}.`);
+        statusEl.innerText = `Access Denied: ${lookupId} belongs to ${actualTerr} Rep. Switch to ${actualTerr} login.`;
+        alert(`Access Denied: ${lookupId} belongs to ${actualTerr}. You are currently logged into ${activeTerritory}.`);
         return;
       }
 
@@ -1181,37 +1357,87 @@
         const route = document.getElementById('sheet-route-select')?.value || TERRITORY_ROUTES[activeTerritory][0].label;
         const staff = document.getElementById('sheet-staff-select')?.value || TERRITORY_STAFF[activeTerritory][0];
         bill = {
-          id: rawCode,
+          id: lookupId,
           territory: activeTerritory,
-          shopName: `${activeTerritory} Shop (${rawCode})`,
-          custCode: "NEW-CUST",
+          shopName: parsedQr?.s || `${activeTerritory} Shop (${lookupId})`,
+          custCode: parsedQr?.c || "-",
           route,
-          date: daysAgo(0),
-          amount: 10000,
-          paid: 0,
+          date: parsedQr?.d || daysAgo(0),
+          amount: Number(parsedQr?.a || 10000),
+          paid: Number(parsedQr?.p || 0),
+          cancelType: parsedQr?.cn || "NONE",
+          returnType: parsedQr?.rt || "NONE",
+          returnAmt: Number(parsedQr?.ra || 0),
           carrier: staff,
           dispatchedMorning: true,
-          lastAction: `Scanned in ${activeTerritory}`
+          lastAction: `Loaded from QR in ${activeTerritory}`
         };
         db.bills.unshift(bill);
+        saveDB();
+      } else if (parsedQr) {
+        if (parsedQr.s) bill.shopName = parsedQr.s;
+        if (parsedQr.c) bill.custCode = parsedQr.c;
+        if (parsedQr.d) bill.date = parsedQr.d;
+        if (Number(parsedQr.a || 0) > 0) bill.amount = Number(parsedQr.a);
+        if (parsedQr.cn && parsedQr.cn !== "NONE") bill.cancelType = parsedQr.cn;
+        if (parsedQr.rt && parsedQr.rt !== "NONE") {
+          bill.returnType = parsedQr.rt;
+          if (Number(parsedQr.ra || 0) > 0) bill.returnAmt = Number(parsedQr.ra);
+        }
         saveDB();
       }
 
       recordScannedBillToSheet(bill.id);
       currentScannedBillId = bill.id;
       const bal = Math.max(0, bill.amount - bill.paid);
-      statusEl.innerText = `Scanned & Added to Today's Sheet: ${bill.id} (${activeTerritory})`;
+      statusEl.innerText = `Loaded Bill Details from QR: ${bill.id} (${activeTerritory})`;
 
       document.getElementById('active-bill-card').classList.remove('hidden');
       document.getElementById('ab-code').innerText = `Bill / QR: ${bill.id} · ${bill.territory}`;
       document.getElementById('ab-shop-route').innerHTML = `<span class="route-dot" style="background-color:${getRouteColorHex(bill.route)};margin-right:5px;"></span>${bill.shopName} · ${bill.route}`;
-      document.getElementById('ab-cust-code').innerText = `Outlet ID / Code: ${bill.custCode || "-"} · Date: ${bill.date}`;
+      document.getElementById('ab-cust-code').innerText = `Outlet ID / Code: ${bill.custCode || "-"} · Bill Date: ${bill.date}`;
+      document.getElementById('ab-flags').innerHTML =
+        `${getCancelBadgeHtml(bill.cancelType)} ${getReturnBadgeHtml(bill.returnType, bill.returnAmt)}`;
       document.getElementById('ab-status').innerText =
         `${bill.dispatchedMorning ? 'Morning Dispatched' : 'Pending Dispatch'} · ${bill.carrier || 'Unassigned'} · ${bill.lastAction || ''}`;
       document.getElementById('ab-balance').innerText = fmt(bal);
       document.getElementById('ab-breakdown').innerText = `Bill Total: ${fmt(bill.amount)} | Paid: ${fmt(bill.paid)}`;
+
+      document.getElementById('ab-cancel-type').value = bill.cancelType || "NONE";
+      document.getElementById('ab-return-type').value = bill.returnType || "NONE";
+      document.getElementById('ab-return-amt').value = bill.returnAmt || "";
       document.getElementById('ab-carrier').value = bill.carrier || "";
       document.getElementById('ab-partial-input').value = "";
+    }
+
+    function updateBillCancelType(cancelType) {
+      const bill = db.bills.find(b => b.id === currentScannedBillId && b.territory === activeTerritory);
+      if (!bill) return;
+      bill.cancelType = cancelType;
+      if (cancelType === "FULL_CANCEL") {
+        bill.paid = bill.amount;
+        bill.lastAction = "Marked FULL CANCEL (Balance Rs. 0)";
+      } else if (cancelType === "PARTIAL_CANCEL") {
+        bill.lastAction = "Marked PARTIAL CANCEL";
+      } else {
+        bill.lastAction = "Cancel Cleared";
+      }
+      saveDB();
+      openBillSettlement(bill.id);
+    }
+
+    function saveBillReturnDetails() {
+      const bill = db.bills.find(b => b.id === currentScannedBillId && b.territory === activeTerritory);
+      if (!bill) return;
+      const returnType = document.getElementById('ab-return-type')?.value || "NONE";
+      const returnAmt = Number(document.getElementById('ab-return-amt')?.value || 0);
+      bill.returnType = returnType;
+      bill.returnAmt = returnAmt;
+      bill.lastAction = returnType === "NONE"
+        ? "Return Cleared"
+        : `Return Logged: ${returnType} (${fmt(returnAmt)})`;
+      saveDB();
+      openBillSettlement(bill.id);
     }
 
     function updateBillCarrier(carrier) {
@@ -1273,9 +1499,12 @@
       const shopName = document.getElementById('new-cr-shop').value.trim();
       const custCode = document.getElementById('new-cr-cust-code').value.trim();
       const amount = Number(document.getElementById('new-cr-amount').value || 0);
+      const cancelType = document.getElementById('new-cr-cancel').value;
+      const returnType = document.getElementById('new-cr-return-type').value;
+      const returnAmt = Number(document.getElementById('new-cr-return-amt').value || 0);
       const carrier = document.getElementById('new-cr-carrier').value;
 
-      if (!shopName || amount <= 0) return alert("Enter shop name and credit amount.");
+      if (!shopName || amount <= 0) return alert("Enter shop name and bill amount.");
 
       const prefix = activeTerritory === "Mihintale" ? "MH" : "AN";
       const id = `${prefix}-${1001 + db.bills.length}`;
@@ -1287,15 +1516,19 @@
         route,
         date: daysAgo(0),
         amount,
-        paid: 0,
+        paid: cancelType === "FULL_CANCEL" ? amount : 0,
+        cancelType,
+        returnType,
+        returnAmt,
         carrier,
         dispatchedMorning: true,
-        lastAction: "Credit Added"
+        lastAction: cancelType === "FULL_CANCEL" ? "Full Cancel Logged" : "Bill Added"
       });
 
       document.getElementById('new-cr-shop').value = '';
       document.getElementById('new-cr-cust-code').value = '';
       document.getElementById('new-cr-amount').value = '';
+      document.getElementById('new-cr-return-amt').value = '';
       saveDB();
     }
 
@@ -1308,7 +1541,7 @@
         if (b.territory !== activeTerritory) return false;
         if (routeFilter !== "ALL" && b.route !== routeFilter) return false;
         if (shopSearch) {
-          const hay = `${b.shopName || ""} ${b.custCode || ""} ${b.id || ""}`.toLowerCase();
+          const hay = `${b.shopName || ""} ${b.custCode || ""} ${b.id || ""} ${b.cancelType || ""} ${b.returnType || ""}`.toLowerCase();
           if (!hay.includes(shopSearch)) return false;
         }
         return true;
@@ -1366,6 +1599,8 @@
                     <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${bal > 0 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">
                       ${bal > 0 ? 'Due: ' + fmt(bal) : 'SETTLED'}
                     </span>
+                    ${getCancelBadgeHtml(b.cancelType)}
+                    ${getReturnBadgeHtml(b.returnType, b.returnAmt)}
                     <span class="text-[10px] font-semibold text-stone-600">${b.carrier || ''}</span>
                   </div>
                   <div class="font-bold text-xs mt-0.5">${b.shopName} <span class="font-normal text-stone-500">[${b.custCode || "-"}] · ${b.route}</span></div>
