@@ -138,7 +138,7 @@
         <button onclick="loginTerritory('Anuradhapura')" class="w-full text-left p-4 rounded-2xl border-2 border-[#13311c] bg-[#f6f4ee] hover:bg-emerald-50 transition flex items-center justify-between">
           <div>
             <div class="font-extrabold text-base text-[#13311c]">Anuradhapura Agency</div>
-            <div class="text-xs text-stone-600">Routes 01–06 · Rep: Mr. Kapila · Cash: Mr. Saman</div>
+            <div class="text-xs text-stone-600">Mon–Sat Routes · Rep: Mr. Kapila · Cash: Mr. Saman</div>
           </div>
           <span class="brand-green text-white text-xs font-bold px-3 py-1.5 rounded-xl">Login →</span>
         </button>
@@ -146,7 +146,7 @@
         <button onclick="loginTerritory('Mihintale')" class="w-full text-left p-4 rounded-2xl border-2 border-amber-600 bg-amber-50/50 hover:bg-amber-50 transition flex items-center justify-between">
           <div>
             <div class="font-extrabold text-base text-[#13311c]">Mihintale Agency</div>
-            <div class="text-xs text-stone-600">Routes 07–12 · Rep: Mr. Sugath · Cash: Mr. Nisal</div>
+            <div class="text-xs text-stone-600">Mon–Sat Routes · Rep: Mr. Sugath · Cash: Mr. Nisal</div>
           </div>
           <span class="brand-gold text-[#13311c] text-xs font-extrabold px-3 py-1.5 rounded-xl">Login →</span>
         </button>
@@ -303,7 +303,7 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
           <div>
-            <label class="text-[11px] font-semibold text-stone-600">Sheet Route</label>
+            <label class="text-[11px] font-semibold text-stone-600">Sheet Route (Mon–Sat)</label>
             <select id="sheet-route-select" class="w-full mt-1 p-2 rounded-lg border border-stone-300 text-xs bg-white"></select>
           </div>
           <div>
@@ -409,7 +409,7 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
-            <label class="text-[11px] font-semibold text-stone-600">Select Route (6 Routes in Territory)</label>
+            <label class="text-[11px] font-semibold text-stone-600">Select Route (Mon–Sat)</label>
             <select id="filter-route" onchange="renderCreditExplorer()" class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-xs bg-white"></select>
           </div>
           <div>
@@ -540,20 +540,20 @@
 
     const TERRITORY_ROUTES = {
       Anuradhapura: [
-        "Anuradhapura - Route 01 (Town)",
-        "Anuradhapura - Route 02 (New Town)",
-        "Anuradhapura - Route 03 (Nochchiyagama)",
-        "Anuradhapura - Route 04 (Thalawa)",
-        "Anuradhapura - Route 05 (Eppawala)",
-        "Anuradhapura - Route 06 (Kekirawa)"
+        "Mon (Green): Town up to Pubudupura",
+        "Tue (Yellow): Pandulagama, Nelubewa up to Hidogama",
+        "Wed (Pink): Mathale junc, Galkulama up to Siwalakulama",
+        "Thu (Blue): Jafna junc, Mihinthale up to Saliyapura",
+        "Fri (Black): Lolugaswewa, Alayapaththuwa up to Thanthirimale",
+        "Sat (Red): Nirawiya, Ilandagahawewa up to Pandulagama"
       ],
       Mihintale: [
-        "Mihintale - Route 07 (Mihintale Town)",
-        "Mihintale - Route 08 (Rambewa)",
-        "Mihintale - Route 09 (Kahatagasdigiliya)",
-        "Mihintale - Route 10 (Horowpothana)",
-        "Mihintale - Route 11 (Galenbindunuwewa)",
-        "Mihintale - Route 12 (Thirappane)"
+        "Mon (Green): Alayapaththuwa up to Vilachchiya",
+        "Tue (Yellow): Jafna junc up to Rambewa",
+        "Wed (Pink): Galpalama up to Galakadawala",
+        "Thu (Blue): Mihinthale, Galkulama up to Thirappane",
+        "Fri (Black): Market side up to Airport road",
+        "Sat (Red): Dahaiyagama, Wijepura up to Thuruwila"
       ]
     };
 
@@ -576,20 +576,20 @@
 
     const defaultData = {
       shops: [
-        { id: "S1", territory: "Anuradhapura", route: TERRITORY_ROUTES.Anuradhapura[2], name: "Indrani Stores", custCode: "R186-000050", limit: 150000 },
-        { id: "S2", territory: "Anuradhapura", route: TERRITORY_ROUTES.Anuradhapura[3], name: "Thalawa Stores", custCode: "R186-000084", limit: 120000 },
-        { id: "S3", territory: "Mihintale", route: TERRITORY_ROUTES.Mihintale[0], name: "Mihintale Bakers & Mart", custCode: "M201-000012", limit: 200000 },
-        { id: "S4", territory: "Mihintale", route: TERRITORY_ROUTES.Mihintale[2], name: "Digiliya Trade Center", custCode: "M201-000039", limit: 150000 }
+        { id: "S1", territory: "Anuradhapura", route: TERRITORY_ROUTES.Anuradhapura[0], name: "Pubudupura Stores", custCode: "R186-000010", limit: 150000 },
+        { id: "S2", territory: "Anuradhapura", route: TERRITORY_ROUTES.Anuradhapura[1], name: "Hidogama Trade Mart", custCode: "R186-000025", limit: 120000 },
+        { id: "S3", territory: "Mihintale", route: TERRITORY_ROUTES.Mihintale[1], name: "Rambewa Bakers & Mart", custCode: "M201-000014", limit: 200000 },
+        { id: "S4", territory: "Mihintale", route: TERRITORY_ROUTES.Mihintale[3], name: "Thirappane Grocery", custCode: "M201-000031", limit: 150000 }
       ],
       bills: [
-        { id: "AN-1001", territory: "Anuradhapura", shopName: "Indrani Stores", custCode: "R186-000050", route: TERRITORY_ROUTES.Anuradhapura[2], date: daysAgo(2), amount: 8650, paid: 0, carrier: "Rep: Mr. Kapila", dispatchedMorning: true, lastAction: "Morning Dispatched" },
-        { id: "AN-1002", territory: "Anuradhapura", shopName: "Thalawa Stores", custCode: "R186-000084", route: TERRITORY_ROUTES.Anuradhapura[3], date: daysAgo(6), amount: 14500, paid: 4500, carrier: "Cash Collector: Mr. Saman", dispatchedMorning: true, lastAction: "Partial Paid Rs. 4,500" },
-        { id: "MH-1003", territory: "Mihintale", shopName: "Mihintale Bakers & Mart", custCode: "M201-000012", route: TERRITORY_ROUTES.Mihintale[0], date: daysAgo(1), amount: 42000, paid: 0, carrier: "Rep: Mr. Sugath", dispatchedMorning: true, lastAction: "Morning Dispatched" },
-        { id: "MH-1004", territory: "Mihintale", shopName: "Digiliya Trade Center", custCode: "M201-000039", route: TERRITORY_ROUTES.Mihintale[2], date: daysAgo(4), amount: 28000, paid: 0, carrier: "Cash Collector: Mr. Nisal", dispatchedMorning: false, lastAction: "Credit Logged" }
+        { id: "AN-1001", territory: "Anuradhapura", shopName: "Pubudupura Stores", custCode: "R186-000010", route: TERRITORY_ROUTES.Anuradhapura[0], date: daysAgo(2), amount: 8650, paid: 0, carrier: "Rep: Mr. Kapila", dispatchedMorning: true, lastAction: "Morning Dispatched" },
+        { id: "AN-1002", territory: "Anuradhapura", shopName: "Hidogama Trade Mart", custCode: "R186-000025", route: TERRITORY_ROUTES.Anuradhapura[1], date: daysAgo(6), amount: 14500, paid: 4500, carrier: "Cash Collector: Mr. Saman", dispatchedMorning: true, lastAction: "Partial Paid Rs. 4,500" },
+        { id: "MH-1003", territory: "Mihintale", shopName: "Rambewa Bakers & Mart", custCode: "M201-000014", route: TERRITORY_ROUTES.Mihintale[1], date: daysAgo(1), amount: 42000, paid: 0, carrier: "Rep: Mr. Sugath", dispatchedMorning: true, lastAction: "Morning Dispatched" },
+        { id: "MH-1004", territory: "Mihintale", shopName: "Thirappane Grocery", custCode: "M201-000031", route: TERRITORY_ROUTES.Mihintale[3], date: daysAgo(4), amount: 28000, paid: 0, carrier: "Cash Collector: Mr. Nisal", dispatchedMorning: false, lastAction: "Credit Logged" }
       ],
       cheques: [
-        { id: "C1", territory: "Anuradhapura", shopName: "Indrani Stores", number: "458921", bank: "BOC", amount: 24400, date: daysAgo(0), status: "Pending" },
-        { id: "C2", territory: "Mihintale", shopName: "Mihintale Bakers & Mart", number: "782104", bank: "Commercial Bank", amount: 35000, date: daysAgo(0), status: "Pending" }
+        { id: "C1", territory: "Anuradhapura", shopName: "Pubudupura Stores", number: "458921", bank: "BOC", amount: 24400, date: daysAgo(0), status: "Pending" },
+        { id: "C2", territory: "Mihintale", shopName: "Rambewa Bakers & Mart", number: "782104", bank: "Commercial Bank", amount: 35000, date: daysAgo(0), status: "Pending" }
       ],
       scannedTodayByTerr: {
         Anuradhapura: [],
@@ -597,7 +597,7 @@
       }
     };
 
-    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v2')) || defaultData;
+    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v3')) || defaultData;
     if (!db.scannedTodayByTerr) db.scannedTodayByTerr = { Anuradhapura: [], Mihintale: [] };
 
     let activeTerritory = sessionStorage.getItem('gd_active_territory') || null;
@@ -677,7 +677,7 @@
     }
 
     function saveDB() {
-      localStorage.setItem('gd_strict_agency_v2', JSON.stringify(db));
+      localStorage.setItem('gd_strict_agency_v3', JSON.stringify(db));
       refreshAll();
     }
 
@@ -926,7 +926,7 @@
       if (!list.includes(billId)) {
         list.push(billId);
         db.scannedTodayByTerr[activeTerritory] = list;
-        localStorage.setItem('gd_strict_agency_v2', JSON.stringify(db));
+        localStorage.setItem('gd_strict_agency_v3', JSON.stringify(db));
         updateScannedSheetBanner();
       }
     }
@@ -951,7 +951,6 @@
       const staff = document.getElementById('sheet-staff-select')?.value || TERRITORY_STAFF[activeTerritory][0];
       const todayStr = daysAgo(0);
 
-      // Build rows from scanned bills (or fall back to open bills on selected route if none scanned yet)
       let targetBills = scannedIds
         .map(id => db.bills.find(b => b.id === id && b.territory === activeTerritory))
         .filter(Boolean);
