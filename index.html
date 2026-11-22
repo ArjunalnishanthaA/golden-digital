@@ -288,7 +288,7 @@
       <div id="sfa-pages-container" class="space-y-4"></div>
     </section>
 
-    <!-- TAB 3: CREDIT (QR SCANNER, RE-EDITABLE PAYMENTS, CANCEL & RETURN) -->
+    <!-- TAB 3: CREDIT (QR SCANNER, SHOP OUTSTANDING LOOKUP, RE-EDITABLE PAYMENTS, CANCEL & RETURN) -->
     <section id="tab-credit" class="hidden space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
@@ -475,7 +475,7 @@
         </div>
       </div>
 
-      <!-- Route & Shop Credit Breakdown -->
+      <!-- Route & Shop Credit Breakdown + Shop Outstanding Detail Lookup -->
       <div class="card-surface rounded-2xl p-4 space-y-3">
         <h3 class="font-extrabold text-sm text-[#13311c]">📊 Route & Shop Credit Breakdown (Active Territory)</h3>
 
@@ -488,10 +488,16 @@
             </div>
           </div>
           <div>
-            <label class="text-[11px] font-semibold text-stone-600">Search Shop Name or Outlet ID</label>
-            <input id="filter-shop-search" type="text" oninput="renderCreditExplorer()" placeholder="Type shop name or code..." class="w-full mt-1 p-2.5 rounded-xl border border-stone-300 text-xs bg-white" />
+            <label class="text-[11px] font-semibold text-stone-600">Search Shop Name or Outlet ID (Shows Shop Outstanding)</label>
+            <div class="flex gap-1.5 mt-1">
+              <input id="filter-shop-search" type="text" oninput="renderCreditExplorer()" placeholder="Type shop name or code (e.g. Premadasa)..." class="flex-1 p-2.5 rounded-xl border border-stone-300 text-xs bg-white" />
+              <button onclick="clearShopSearchFilter()" class="bg-stone-200 text-stone-800 text-xs font-bold px-3 rounded-xl">Clear</button>
+            </div>
           </div>
         </div>
+
+        <!-- Shop Outstanding Detail Card (Appears when typing/selecting a specific shop) -->
+        <div id="shop-outstanding-detail" class="hidden bg-amber-50/80 border-2 border-amber-500 rounded-2xl p-3.5 space-y-3"></div>
 
         <div id="credit-scope-summary" class="brand-green text-white rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center gap-2.5">
@@ -505,7 +511,7 @@
         </div>
 
         <div>
-          <h4 class="text-xs font-bold text-[#13311c] mb-2">Shop Credit Summary (Open Bills & Balance per Shop)</h4>
+          <h4 class="text-xs font-bold text-[#13311c] mb-2">Shop Credit Summary (Tap Any Shop to View Full Bills)</h4>
           <div id="shop-credit-summary" class="space-y-2"></div>
         </div>
 
@@ -814,7 +820,9 @@
       }
     };
 
-    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v10')) || defaultData;
+    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v11')) ||
+             JSON.parse(localStorage.getItem('gd_strict_agency_v10')) ||
+             defaultData;
     if (!db.scannedTodayByTerr) db.scannedTodayByTerr = { Anuradhapura: [], Mihintale: [] };
 
     let activeTerritory = sessionStorage.getItem('gd_active_territory') || null;
@@ -927,7 +935,7 @@
     }
 
     function saveDB() {
-      localStorage.setItem('gd_strict_agency_v10', JSON.stringify(db));
+      localStorage.setItem('gd_strict_agency_v11', JSON.stringify(db));
       refreshAll();
     }
 
@@ -1498,7 +1506,7 @@
       if (!list.includes(billId)) {
         list.push(billId);
         db.scannedTodayByTerr[activeTerritory] = list;
-        localStorage.setItem('gd_strict_agency_v10', JSON.stringify(db));
+        localStorage.setItem('gd_strict_agency_v11', JSON.stringify(db));
         updateScannedSheetBanner();
       }
     }
@@ -1857,11 +1865,167 @@
       saveDB();
     }
 
+    /* ---------------- SHOP OUTSTANDING LOOKUP & EXPLORER ---------------- */
+    function getShopOutstandingInfo(shopName, custCode) {
+      const terrBills = db.bills.filter(b => b.territory === activeTerritory);
+      const sNameLow = (shopName || "").trim().toLowerCase();
+      const cCodeLow = (custCode || "").trim().toLowerCase();
+
+      const matchedBills = terrBills.filter(b => {
+        const bName = (b.shopName || "").trim().toLowerCase();
+        const bCode = (b.custCode || "").trim().toLowerCase();
+        if (cCodeLow && cCodeLow !== "-" && bCode === cCodeLow) return true;
+        if (sNameLow && bName === sNameLow) return true;
+        return false;
+      });
+
+      const totalDue = matchedBills.reduce((sum, b) => sum + Math.max(0, Number(b.amount || 0) - Number(b.paid || 0)), 0);
+      const openBillsCount = matchedBills.filter(b => (b.amount - b.paid) > 0).length;
+
+      const shopRec = db.shops.find(s =>
+        s.territory === activeTerritory &&
+        ((cCodeLow && cCodeLow !== "-" && (s.custCode || "").toLowerCase() === cCodeLow) ||
+         (s.name || "").toLowerCase() === sNameLow)
+      );
+
+      const creditLimit = Number(shopRec?.limit || 150000);
+      const availableLimit = Math.max(0, creditLimit - totalDue);
+
+      return {
+        matchedBills,
+        totalDue,
+        openBillsCount,
+        creditLimit,
+        availableLimit,
+        route: shopRec?.route || matchedBills[0]?.route || ""
+      };
+    }
+
+    function selectShopForOutstanding(shopName, custCode = "") {
+      switchTab('credit');
+      const inputEl = document.getElementById('filter-shop-search');
+      if (inputEl) {
+        inputEl.value = shopName;
+      }
+      renderCreditExplorer();
+      document.getElementById('shop-outstanding-detail')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function clearShopSearchFilter() {
+      const inputEl = document.getElementById('filter-shop-search');
+      if (inputEl) inputEl.value = "";
+      renderCreditExplorer();
+    }
+
+    function renderShopOutstandingDetailCard(shopSearch) {
+      const card = document.getElementById('shop-outstanding-detail');
+      if (!card) return;
+
+      const q = (shopSearch || "").trim().toLowerCase();
+      if (!q) {
+        card.classList.add('hidden');
+        card.innerHTML = "";
+        return;
+      }
+
+      const terrShops = db.shops.filter(s => s.territory === activeTerritory);
+      const terrBills = db.bills.filter(b => b.territory === activeTerritory);
+
+      const candidateNames = new Set();
+      terrShops.forEach(s => {
+        if (`${s.name || ""} ${s.custCode || ""} ${s.route || ""}`.toLowerCase().includes(q)) {
+          candidateNames.add(s.name);
+        }
+      });
+      terrBills.forEach(b => {
+        if (`${b.shopName || ""} ${b.custCode || ""} ${b.id || ""}`.toLowerCase().includes(q)) {
+          candidateNames.add(b.shopName);
+        }
+      });
+
+      const namesArr = Array.from(candidateNames);
+      if (!namesArr.length) {
+        card.classList.remove('hidden');
+        card.innerHTML = `<div class="text-xs font-semibold text-stone-700">No matching shop found for "${shopSearch}" in ${activeTerritory}.</div>`;
+        return;
+      }
+
+      const primaryName = namesArr[0];
+      const info = getShopOutstandingInfo(primaryName, "");
+
+      const otherMatchesHtml = namesArr.length > 1
+        ? `<div class="flex flex-wrap gap-1.5 pt-1">
+             <span class="text-[11px] font-semibold text-stone-600">Other matches:</span>
+             ${namesArr.slice(1, 6).map(n => `<button onclick="selectShopForOutstanding('${n.replace(/'/g, "\\'")}')" class="text-[11px] bg-white border border-amber-400 text-[#13311c] font-bold px-2 py-0.5 rounded-lg">${n}</button>`).join('')}
+           </div>`
+        : "";
+
+      const billsHtml = info.matchedBills.length
+        ? info.matchedBills.map(b => {
+            const bal = Math.max(0, b.amount - b.paid);
+            return `
+              <div class="bg-white border border-amber-200 rounded-xl p-2.5 flex items-center justify-between gap-2">
+                <div>
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="font-extrabold text-xs text-[#13311c]">${b.id}</span>
+                    <span class="text-[10px] text-stone-500">(${b.date})</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold ${bal > 0 ? 'bg-red-100 text-red-800' : 'bg-emerald-100 text-emerald-800'}">
+                      ${bal > 0 ? 'Due: ' + fmt(bal) : 'PAID'}
+                    </span>
+                    ${getCancelBadgeHtml(b.cancelType)}
+                    ${getReturnBadgeHtml(b.returnType, b.returnAmt)}
+                  </div>
+                  <div class="text-[11px] text-stone-600 mt-0.5">Bill: ${fmt(b.amount)} · Paid: ${fmt(b.paid)} · ${b.carrier || ''}</div>
+                </div>
+                <button onclick="openBillSettlement('${b.id}')" class="bg-[#13311c] text-white text-[11px] font-bold px-2.5 py-1.5 rounded-lg shrink-0">
+                  Settle
+                </button>
+              </div>
+            `;
+          }).join('')
+        : `<div class="text-xs text-stone-600 bg-white border border-amber-200 rounded-xl p-2.5">No credit/return bills recorded yet for this shop.</div>`;
+
+      card.classList.remove('hidden');
+      card.innerHTML = `
+        <div class="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <div class="text-[10px] font-extrabold uppercase tracking-wider text-amber-900">Shop Outstanding Lookup (${activeTerritory})</div>
+            <div class="text-base font-extrabold text-[#13311c] mt-0.5">${primaryName}</div>
+            <div class="text-[11px] text-stone-600">${info.route || 'Territory Shop'} · ${info.openBillsCount} open bill(s)</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10px] font-bold uppercase text-stone-600">Total Shop Outstanding</div>
+            <div class="text-2xl font-extrabold text-red-700">${fmt(info.totalDue)}</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <div class="bg-white border border-amber-200 rounded-xl p-2">
+            <div class="text-[10px] text-stone-500 uppercase">Credit Limit</div>
+            <div class="text-xs font-extrabold text-[#13311c]">${fmt(info.creditLimit)}</div>
+          </div>
+          <div class="bg-white border border-amber-200 rounded-xl p-2">
+            <div class="text-[10px] text-stone-500 uppercase">Available Limit</div>
+            <div class="text-xs font-extrabold text-emerald-800">${fmt(info.availableLimit)}</div>
+          </div>
+        </div>
+
+        ${otherMatchesHtml}
+
+        <div class="space-y-1.5 pt-1">
+          <div class="text-[11px] font-bold text-[#13311c]">Bills for ${primaryName}:</div>
+          ${billsHtml}
+        </div>
+      `;
+    }
+
     function renderCreditExplorer() {
       if (!activeTerritory) return;
       const routeFilter = document.getElementById('filter-route')?.value || "ALL";
       const shopSearch = (document.getElementById('filter-shop-search')?.value || "").trim().toLowerCase();
       const routeCount = TERRITORY_ROUTES[activeTerritory].length;
+
+      renderShopOutstandingDetailCard(shopSearch);
 
       const matchingBills = db.bills.filter(b => {
         if (b.territory !== activeTerritory) return false;
@@ -1897,19 +2061,19 @@
 
       document.getElementById('shop-credit-summary').innerHTML = shopListArr.length
         ? shopListArr.map(sc => `
-            <div class="bg-stone-50 border border-stone-200 rounded-xl p-3 flex items-center justify-between">
+            <button onclick="selectShopForOutstanding('${sc.shopName.replace(/'/g, "\\'")}')" class="w-full text-left bg-stone-50 hover:bg-amber-50 border border-stone-200 rounded-xl p-3 flex items-center justify-between transition">
               <div>
                 <div class="font-extrabold text-xs text-[#13311c]">
                   <span class="route-dot" style="background-color:${getRouteColorHex(sc.route)};margin-right:6px;"></span>
                   ${sc.shopName} <span class="font-normal text-stone-500">(${sc.custCode})</span>
                 </div>
-                <div class="text-[11px] text-stone-500">${sc.route} · <strong>${sc.openCount}</strong> open bill(s)</div>
+                <div class="text-[11px] text-stone-500">${sc.route} · <strong>${sc.openCount}</strong> open bill(s) · Tap for detail</div>
               </div>
               <div class="text-right">
                 <div class="text-sm font-extrabold text-red-700">${fmt(sc.dueTotal)}</div>
                 <div class="text-[10px] text-stone-500">Outstanding</div>
               </div>
-            </div>
+            </button>
           `).join('')
         : `<div class="text-xs text-stone-500">No open credit shops in this filter.</div>`;
 
@@ -2025,18 +2189,24 @@
         ? terrShops.filter(s => `${s.name} ${s.custCode} ${s.route}`.toLowerCase().includes(shopSearchQ))
         : terrShops;
 
-      document.getElementById('shops-list').innerHTML = filteredShops.map(s => `
-        <div class="card-surface rounded-xl p-3 flex items-center justify-between gap-2">
-          <div>
-            <div class="font-bold text-xs text-[#13311c]">
-              <span class="route-dot" style="background-color:${getRouteColorHex(s.route)};margin-right:6px;"></span>
-              ${s.name} <span class="font-normal text-stone-500">(${s.custCode || "-"})</span>
+      document.getElementById('shops-list').innerHTML = filteredShops.map(s => {
+        const sDue = getShopOutstandingInfo(s.name, s.custCode).totalDue;
+        return `
+          <div class="card-surface rounded-xl p-3 flex items-center justify-between gap-2">
+            <div>
+              <div class="font-bold text-xs text-[#13311c]">
+                <span class="route-dot" style="background-color:${getRouteColorHex(s.route)};margin-right:6px;"></span>
+                ${s.name} <span class="font-normal text-stone-500">(${s.custCode || "-"})</span>
+              </div>
+              <div class="text-[11px] text-stone-500">${s.route}${Number(s.annualSales || 0) > 0 ? ` · 12M Sales: ${fmt(s.annualSales)}` : ''}</div>
             </div>
-            <div class="text-[11px] text-stone-500">${s.route}${Number(s.annualSales || 0) > 0 ? ` · 12M Sales: ${fmt(s.annualSales)}` : ''}</div>
+            <div class="text-right shrink-0 space-y-0.5">
+              <div class="text-xs font-extrabold ${sDue > 0 ? 'text-red-700' : 'text-emerald-700'}">Due: ${fmt(sDue)}</div>
+              <button onclick="selectShopForOutstanding('${s.name.replace(/'/g, "\\'")}')" class="text-[10px] font-bold underline text-[#13311c]">View Bills →</button>
+            </div>
           </div>
-          <div class="text-xs font-bold text-stone-700 shrink-0">Limit: ${fmt(s.limit)}</div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
 
       document.getElementById('cheques-list').innerHTML = terrCheques.map(c => `
         <div class="bg-stone-50 border border-stone-200 rounded-xl p-3 flex items-center justify-between">
