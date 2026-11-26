@@ -181,7 +181,7 @@
       </div>
     </div>
 
-    <!-- Quick Top Tabs (Always accessible on laptop/wide screens even if bottom bar is scrolled) -->
+    <!-- Quick Top Tabs -->
     <div class="hidden md:flex items-center gap-1 bg-[#0c2213] p-1 rounded-xl">
       <button onclick="switchTab('dashboard')" id="top-nav-dashboard" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#e8b339] text-[#13311c]">Dashboard</button>
       <button onclick="switchTab('bills')" id="top-nav-bills" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-100 hover:bg-[#1e462a]">SFA + QR</button>
@@ -303,7 +303,7 @@
       <div id="sfa-pages-container" class="space-y-4"></div>
     </section>
 
-    <!-- TAB 3: CREDIT (QR SCANNER, SHOP OUTSTANDING LOOKUP, RE-EDITABLE PAYMENTS, CANCEL & RETURN) -->
+    <!-- TAB 3: CREDIT -->
     <section id="tab-credit" class="hidden space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
@@ -458,7 +458,7 @@
         </div>
       </div>
 
-      <!-- Add Credit Bill (with Cancel & Return Options) -->
+      <!-- Add Credit Bill -->
       <div class="card-surface rounded-2xl p-4 space-y-3">
         <h3 id="add-cr-heading" class="font-bold text-sm text-[#13311c]">+ Add Daily Credit / Return / Cancel Bill</h3>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -490,7 +490,7 @@
         </div>
       </div>
 
-      <!-- Route & Shop Credit Breakdown + Shop Outstanding Detail Lookup -->
+      <!-- Route & Shop Credit Breakdown -->
       <div class="card-surface rounded-2xl p-4 space-y-3">
         <h3 class="font-extrabold text-sm text-[#13311c]">📊 Route & Shop Credit Breakdown (Active Territory)</h3>
 
@@ -540,7 +540,6 @@
     <section id="tab-shops" class="hidden space-y-4">
       <h2 id="shops-heading" class="text-xl font-extrabold text-[#13311c]">Territory Routes & Shops</h2>
 
-      <!-- Route Filter + Instant Shop Search Bar (e.g. type 'ar' -> Araliya Stores) -->
       <div class="card-surface rounded-2xl p-4 space-y-3 border-2 border-[#13311c]/20">
         <div class="flex items-center justify-between">
           <h3 class="font-extrabold text-sm text-[#13311c]">🔎 Route Retailer Line & Instant Shop Search</h3>
@@ -565,7 +564,6 @@
         </div>
       </div>
 
-      <!-- Import Customer Route Mapping OR Route Wise Productivity PDF -->
       <div class="card-surface rounded-2xl p-4 space-y-2.5 border-2 border-dashed border-[#13311c]/40">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div>
@@ -589,7 +587,6 @@
         <div id="route-color-legend" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
       </div>
 
-      <!-- Register New Shop -->
       <div class="card-surface rounded-2xl p-4 space-y-3">
         <h3 class="font-bold text-sm text-[#13311c]">Register New Shop</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -616,7 +613,6 @@
         <button onclick="addShop()" class="w-full brand-green text-white font-bold py-2.5 rounded-xl text-sm">+ Add Shop</button>
       </div>
 
-      <!-- Quick Bulk Paste Retailers in Visit Order -->
       <div class="card-surface rounded-2xl p-4 space-y-2.5">
         <h3 class="font-bold text-sm text-[#13311c]">📋 Quick Bulk Paste Shops (1 Shop Per Line in Visit Order)</h3>
         <p class="text-[11px] text-stone-500">Paste shop names (or "Code | Shop Name") for the currently selected route above</p>
@@ -626,7 +622,6 @@
         </button>
       </div>
 
-      <!-- Shops List -->
       <div id="shops-list" class="space-y-2"></div>
     </section>
 
@@ -1263,39 +1258,46 @@
 
     function extractInvoiceNumber(text) {
       const cleanText = (text || "").replace(/\s+/g, " ");
-      const invMatch = cleanText.match(/(?:Invoice\s*(?:No\.?|#|Number)?|Bill\s*(?:No\.?|#)?|INV)\s*[:\-]?\s*([A-Z0-9_\/\-]{4,30})/i);
-      if (!invMatch) return "";
-      const val = invMatch[1].replace(/[^A-Z0-9_\-]/gi, '').toUpperCase();
+      const invMatch = cleanText.match(/Invoice\s*(?:No\.?|#|Number)?\s*[:\-]?\s*([A-Z0-9][A-Z0-9_\-\s]{3,28}?)(?=\s+(?:Invoice\s*Date|Sales\s*Person|Order\s*Id|Invoiced\s*To|Tel|$))/i);
+      let rawVal = invMatch ? invMatch[1] : "";
+
+      if (!rawVal) {
+        const fallback = cleanText.match(/(?:Invoice\s*(?:No\.?|#|Number)?|Bill\s*(?:No\.?|#)?|INV)\s*[:\-]?\s*([A-Z0-9_\-\s]{4,28})/i);
+        rawVal = fallback ? fallback[1] : "";
+      }
+
+      const val = rawVal.trim().replace(/\s+/g, "_").replace(/[^A-Z0-9_\-]/gi, '').toUpperCase();
       if (!val || /^(NO|NUMBER|DATE|TO|FROM|PAGE|INVOICE)$/i.test(val)) return "";
       return val;
     }
 
     function isContinuationPage(text, pageNum, extractedInv, lastInvSeen) {
-      const clean = (text || "").toLowerCase();
+      const clean = (text || "").replace(/\s+/g, " ").toLowerCase();
 
-      // If a brand new invoice number is found and differs from the previous bill's invoice number, it's a NEW bill
+      // Same invoice number repeated on a later page = continuation page of the SAME bill -> NO QR
+      if (extractedInv && lastInvSeen && extractedInv === lastInvSeen) {
+        return true;
+      }
+
+      // Different/new invoice number = NEW bill's Page 1 -> PUT QR
       if (extractedInv && lastInvSeen && extractedInv !== lastInvSeen) {
         return false;
       }
 
-      // Explicit continuation wording without a new invoice number
-      if (/\b(cont(?:inued|inuation)?|next\s*page)\b/i.test(clean) && !extractedInv) {
+      // Explicit continuation / multi-page wording without a new invoice number -> NO QR
+      if (pageNum > 1 && /\b(cont(?:inued|inuation)?|next\s*page|page\s*(?:2|3|4|5|6|7|8|9|\d+)\s*(?:of|\/)\s*\d+)\b/i.test(clean)) {
         return true;
       }
 
-      // Multi-page continuation indicator like "Page 2 of 3" or "2/3" when no distinct new invoice number
-      if (/\bpage\s*(?:2|3|4|5|6|7|8|9|\d+)\s*(?:of|\/)\s*\d+\b/i.test(clean)) {
-        return true;
-      }
-
-      // Same invoice number repeated on subsequent page = continuation page
-      if (pageNum > 1 && extractedInv && lastInvSeen && extractedInv === lastInvSeen) {
-        return true;
-      }
-
-      // If page > 1 and an invoice number IS detected, treat as a new bill unless proven continuation above
-      if (pageNum > 1 && extractedInv) {
+      // Full new bill header (Invoice No + Invoice Date / Sales Person / Invoiced To) -> NEW bill's Page 1 -> PUT QR
+      const hasNewBillHeader = /invoice\s*no/i.test(clean) && (/invoice\s*date/i.test(clean) || /sales\s*person/i.test(clean) || /invoiced\s*to/i.test(clean));
+      if (hasNewBillHeader) {
         return false;
+      }
+
+      // Subsequent pages without a new invoice number are continuation pages -> NO QR
+      if (pageNum > 1 && !extractedInv) {
+        return true;
       }
 
       return false;
