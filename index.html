@@ -45,10 +45,10 @@
       background: #ffffff;
       width: 100%;
       box-sizing: border-box;
-      overflow: hidden;
+      overflow: visible !important;
     }
 
-    .invoice-sheet img {
+    .invoice-sheet > img {
       display: block;
       width: 100%;
       height: auto;
@@ -56,12 +56,15 @@
 
     .qr-top-right {
       position: absolute;
-      top: 4px;
-      right: 4px;
+      top: 6px;
+      right: 24px;
       background: #ffffff;
       border: 1.5px solid #000000;
       padding: 2px;
-      z-index: 20;
+      z-index: 30;
+      width: auto !important;
+      height: auto !important;
+      max-width: none !important;
       text-align: center;
     }
 
@@ -73,7 +76,7 @@
 
     @media print {
       @page {
-        margin: 4mm;
+        margin: 6mm;
         size: auto;
       }
 
@@ -81,6 +84,7 @@
         background: #ffffff !important;
         margin: 0 !important;
         padding: 0 !important;
+        overflow: visible !important;
       }
 
       body > *:not(#print-stage) {
@@ -95,6 +99,7 @@
         padding: 0 !important;
         background: #ffffff !important;
         color: #000000 !important;
+        overflow: visible !important;
       }
 
       .invoice-sheet {
@@ -103,6 +108,7 @@
         border: none !important;
         box-shadow: none !important;
         max-width: 100% !important;
+        overflow: visible !important;
       }
 
       .invoice-sheet:last-child {
@@ -111,8 +117,11 @@
       }
 
       .qr-top-right {
-        top: 2mm;
-        right: 2mm;
+        top: 4mm;
+        right: 14mm;
+        width: auto !important;
+        height: auto !important;
+        max-width: none !important;
       }
 
       .dispatch-report-sheet {
@@ -736,6 +745,29 @@
         "Cash Collector: Mr. Nisal"
       ]
     };
+
+    function renderCleanQrIntoBox(boxEl, payloadText, qrSize) {
+      if (!boxEl) return;
+      boxEl.innerHTML = "";
+      const tempDiv = document.createElement("div");
+      new QRCode(tempDiv, {
+        text: payloadText,
+        width: qrSize,
+        height: qrSize,
+        correctLevel: QRCode.CorrectLevel.L
+      });
+
+      const canvas = tempDiv.querySelector("canvas");
+      const srcImg = tempDiv.querySelector("img");
+      const dataUrl = canvas ? canvas.toDataURL("image/png") : (srcImg ? srcImg.src : "");
+
+      const finalImg = document.createElement("img");
+      finalImg.src = dataUrl;
+      finalImg.style.width = `${qrSize}px`;
+      finalImg.style.height = `${qrSize}px`;
+      finalImg.style.display = "block";
+      boxEl.appendChild(finalImg);
+    }
 
     function getCancelBadgeHtml(cancelType) {
       if (cancelType === "FULL_CANCEL") {
@@ -1485,7 +1517,7 @@
           <div id="sheet-card-${idx}" class="invoice-sheet border border-stone-300 rounded-lg">
             <img src="${p.imgSrc}" alt="SFA Invoice Page ${p.pageNum}" />
             ${p.hasQr ? `
-              <div class="qr-top-right" style="max-width: ${qrSize + 6}px;">
+              <div class="qr-top-right">
                 <div id="qr-box-${idx}"></div>
               </div>
             ` : ""}
@@ -1501,16 +1533,8 @@
       renderedPages.forEach((p, idx) => {
         if (!p.hasQr) return;
         const box = document.getElementById(`qr-box-${idx}`);
-        const badge = document.querySelector(`#sheet-card-${idx} .qr-top-right`);
         if (!box) return;
-        if (badge) badge.style.maxWidth = `${qrSize + 6}px`;
-        box.innerHTML = "";
-        new QRCode(box, {
-          text: p.qrPayload,
-          width: qrSize,
-          height: qrSize,
-          correctLevel: QRCode.CorrectLevel.L
-        });
+        renderCleanQrIntoBox(box, p.qrPayload, qrSize);
       });
     }
 
@@ -1571,13 +1595,7 @@
       const qrSize = getQrPx();
       const cloneQrBox = clone.querySelector(`#qr-box-${idx}`);
       if (cloneQrBox && renderedPages[idx]?.hasQr) {
-        cloneQrBox.innerHTML = "";
-        new QRCode(cloneQrBox, {
-          text: renderedPages[idx].qrPayload,
-          width: qrSize,
-          height: qrSize,
-          correctLevel: QRCode.CorrectLevel.L
-        });
+        renderCleanQrIntoBox(cloneQrBox, renderedPages[idx].qrPayload, qrSize);
       }
       stage.appendChild(clone);
       stage.classList.remove('hidden');
@@ -1600,13 +1618,7 @@
         const clone = orig.cloneNode(true);
         const cloneQrBox = clone.querySelector(`#qr-box-${idx}`);
         if (cloneQrBox && p.hasQr) {
-          cloneQrBox.innerHTML = "";
-          new QRCode(cloneQrBox, {
-            text: p.qrPayload,
-            width: qrSize,
-            height: qrSize,
-            correctLevel: QRCode.CorrectLevel.L
-          });
+          renderCleanQrIntoBox(cloneQrBox, p.qrPayload, qrSize);
         }
         stage.appendChild(clone);
       });
