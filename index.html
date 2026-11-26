@@ -54,7 +54,6 @@
       height: auto;
     }
 
-    /* Short, clean, borderless barcode positioned cleanly without clipping address */
     .barcode-top-right {
       position: absolute;
       top: 48px;
@@ -401,7 +400,6 @@
           </div>
         </div>
 
-        <!-- FULL BILL DETAILS CARD -->
         <div id="active-bill-card" class="hidden bg-[#f9f8f4] border-2 border-[#13311c] rounded-2xl p-4 space-y-3">
           <div class="flex flex-wrap items-start justify-between gap-2">
             <div class="space-y-1">
@@ -420,7 +418,6 @@
             </div>
           </div>
 
-          <!-- Quick Fix / Edit Scanned Bill Details (Shop, Outlet ID, Route, Total Amount) -->
           <div class="bg-white border border-stone-300 rounded-xl p-3 space-y-2">
             <div class="text-[11px] font-extrabold text-[#13311c]">✏️ Edit / Complete Bill Details (Shop, Outlet Code, Route & Total Rs.)</div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -784,17 +781,13 @@
       const raw = String(billId || "1").replace(/^(AN|MH)[_\-]?/i, "").trim();
       const digitsOnly = raw.replace(/[^0-9]/g, "");
       const alnumOnly = raw.replace(/[^A-Z0-9]/gi, "").toUpperCase();
-
-      const shortTail = digitsOnly.length >= 3
-        ? digitsOnly.slice(-4)
-        : (alnumOnly.slice(-4) || "1");
+      const shortTail = digitsOnly.length >= 3 ? digitsOnly.slice(-4) : (alnumOnly.slice(-4) || "1");
       return `${prefix}${shortTail}`;
     }
 
     function renderCleanBarcodeIntoBox(boxEl, barcodeText, preset = getBarcodePreset()) {
       if (!boxEl || !window.JsBarcode) return;
       boxEl.innerHTML = "";
-
       const cleanCode = String(barcodeText || "AN1220").replace(/[^A-Z0-9]/gi, "").toUpperCase().slice(0, 7) || "AN1220";
       const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 
@@ -822,7 +815,6 @@
         canvas.width = img.width || 150;
         canvas.height = img.height || 75;
         const ctx = canvas.getContext("2d");
-
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
@@ -832,10 +824,7 @@
         for (let i = 0; i < data.length; i += 4) {
           const lum = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
           const v = lum < 190 ? 0 : 255;
-          data[i] = v;
-          data[i + 1] = v;
-          data[i + 2] = v;
-          data[i + 3] = 255;
+          data[i] = v; data[i + 1] = v; data[i + 2] = v; data[i + 3] = 255;
         }
         ctx.putImageData(imgData, 0, 0);
 
@@ -945,7 +934,7 @@
       }
     };
 
-    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v21')) || defaultData;
+    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v22')) || defaultData;
     if (!db.scannedTodayByTerr) db.scannedTodayByTerr = { Anuradhapura: [], Mihintale: [] };
 
     let activeTerritory = sessionStorage.getItem('gd_active_territory') || null;
@@ -1087,7 +1076,7 @@
     }
 
     function saveDB() {
-      localStorage.setItem('gd_strict_agency_v21', JSON.stringify(db));
+      localStorage.setItem('gd_strict_agency_v22', JSON.stringify(db));
       rebuildTerritoryDropdowns();
       refreshAll();
     }
@@ -1493,12 +1482,12 @@
       const barcodeVal = pageObj.barcodePayload || buildBarcodeValue(activeTerritory, pageObj.billId);
 
       const existing = db.bills.find(b =>
-        b.id.toLowerCase() === pageObj.billId.toLowerCase() ||
-        (b.barcode && b.barcode.toUpperCase() === barcodeVal.toUpperCase())
+        b.territory === activeTerritory &&
+        (b.id.toLowerCase() === pageObj.billId.toLowerCase() ||
+         (b.barcode && b.barcode.toUpperCase() === barcodeVal.toUpperCase()))
       );
 
       if (existing) {
-        if (existing.territory !== activeTerritory) return;
         existing.shopName = shopName || existing.shopName;
         existing.custCode = custCode || existing.custCode;
         existing.route = route;
@@ -1508,6 +1497,7 @@
         existing.carrier = pageObj.detectedStaff || existing.carrier;
         if (pageObj.cancelType && pageObj.cancelType !== "NONE") existing.cancelType = pageObj.cancelType;
         if (pageObj.returnType && pageObj.returnType !== "NONE") existing.returnType = pageObj.returnType;
+        existing.lastAction = `Auto-synced (${barcodeVal})`;
       } else {
         db.bills.unshift({
           id: pageObj.billId,
@@ -1524,7 +1514,7 @@
           returnAmt: 0,
           carrier: pageObj.detectedStaff || TERRITORY_STAFF[activeTerritory][0],
           dispatchedMorning: true,
-          lastAction: `Auto-saved (${route.split(":")[0]})`
+          lastAction: `Auto-saved (${barcodeVal})`
         });
       }
     }
@@ -1827,7 +1817,7 @@
       if (!list.includes(billId)) {
         list.push(billId);
         db.scannedTodayByTerr[activeTerritory] = list;
-        localStorage.setItem('gd_strict_agency_v21', JSON.stringify(db));
+        localStorage.setItem('gd_strict_agency_v22', JSON.stringify(db));
         updateScannedSheetBanner();
       }
     }
@@ -2001,10 +1991,8 @@
     function findMatchingBillByCode(lookupId) {
       const cleanId = String(lookupId || "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
       const tailNum = cleanId.replace(/^(AN|MH)/i, "").replace(/^0+/, "");
-
       const terrBills = db.bills.filter(b => b.territory === activeTerritory);
 
-      // 1. Exact ID or Barcode match
       let match = terrBills.find(b => {
         const bIdClean = String(b.id || "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
         const bBcClean = String(b.barcode || buildBarcodeValue(b.territory, b.id)).replace(/[^A-Z0-9]/gi, "").toUpperCase();
@@ -2012,7 +2000,6 @@
       });
       if (match) return match;
 
-      // 2. Tail number / suffix match (e.g. 1220 inside AN-INV-001220)
       if (tailNum) {
         match = terrBills.find(b => {
           const bIdDigits = String(b.id || "").replace(/[^0-9]/g, "").replace(/^0+/, "");
@@ -2026,7 +2013,6 @@
 
     function openBillSettlement(rawInput) {
       if (!rawInput || !activeTerritory) return;
-
       switchTab('credit');
 
       const statusEl = document.getElementById('barcode-scanner-status');
@@ -2036,7 +2022,6 @@
 
       let bill = findMatchingBillByCode(lookupId);
 
-      // Check rendered PDF pages if not yet in db.bills
       if (!bill && renderedPages.length) {
         const cleanId = lookupId.replace(/[^A-Z0-9]/gi, "").toUpperCase();
         const tailNum = cleanId.replace(/^(AN|MH)/i, "").replace(/^0+/, "");
@@ -2055,7 +2040,6 @@
       }
 
       const actualTerr = bill ? bill.territory : scanTerr;
-
       if (actualTerr && actualTerr !== activeTerritory) {
         document.getElementById('active-bill-card').classList.add('hidden');
         statusEl.innerText = `Access Denied: ${lookupId} belongs to ${actualTerr}. Switch to ${actualTerr} login.`;
@@ -2083,7 +2067,7 @@
           returnAmt: 0,
           carrier: staff,
           dispatchedMorning: true,
-          lastAction: `Scanned Barcode ${lookupId} in ${activeTerritory}`
+          lastAction: `Auto-loaded ${lookupId} in ${activeTerritory}`
         };
         db.bills.unshift(bill);
         saveDB();
@@ -2109,8 +2093,7 @@
         `Territory: ${bill.territory} · Assigned: ${bill.carrier || TERRITORY_STAFF[activeTerritory][0]} · Dispatch: ${bill.dispatchedMorning ? 'Dispatched' : 'Pending'}`;
       document.getElementById('ab-flags').innerHTML =
         `${getCancelBadgeHtml(bill.cancelType)} ${getReturnBadgeHtml(bill.returnType, bill.returnAmt)}`;
-      document.getElementById('ab-status').innerText =
-        `${bill.lastAction || 'Ready for settlement'}`;
+      document.getElementById('ab-status').innerText = bill.lastAction || 'Ready for settlement';
 
       document.getElementById('ab-balance').innerText = fmt(bal);
       document.getElementById('ab-breakdown').innerText = `Bill Total: ${fmt(bill.amount)} | Paid: ${fmt(bill.paid)}`;
