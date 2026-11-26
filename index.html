@@ -1399,24 +1399,38 @@
     }
 
     function extractShopNameFromPdf(text, fallbackShop) {
-      const clean = (text || "").replace(/\s+/g, " ");
-      const m = clean.match(/Invoiced\s*To\s*[:\-]?\s*([A-Za-z0-9\s&.\-\/]+?)(?=\s+(?:Tel|Phone|Mobile|Address|Route|Sales\s*Person|Invoice\s*No|Invoice\s*Date|Order\s*Id|$))/i);
-      if (m && m[1].trim().length >= 2) {
-        return m[1].trim().replace(/\b(?:CUS\d+|R\d{2,3}-\d+)\b/gi, "").trim().slice(0, 42);
+      const clean = String(text || "").replace(/\s+/g, " ");
+      const patterns = [
+        /(?:Invoiced\s*To|Customer\s*Name|Outlet\s*Name|Shop\s*Name|Customer|Outlet|Shop)\s*[:\-]?\s*([A-Za-z0-9\s&.\-\/]+?)(?=\s+(?:Tel|Phone|Mobile|Address|Route|Sales\s*Person|Invoice\s*No|Invoice\s*Date|Order\s*Id|Total|Amount|$))/i
+      ];
+
+      for (const pat of patterns) {
+        const m = clean.match(pat);
+        if (m && m[1]) {
+          const cleaned = m[1]
+            .replace(/\b(?:CUS\d+|R\d{2,3}-\d+|Special\s*Customer|Normal\s*Customer)\b/gi, "")
+            .replace(/\s+/g, " ")
+            .trim();
+          if (cleaned.length >= 2) {
+            return cleaned.slice(0, 42);
+          }
+        }
       }
       return fallbackShop;
     }
 
     function extractAmountFromPdf(text) {
-      const clean = (text || "").replace(/\s+/g, " ");
-      const labeled = clean.match(/(?:Net\s*Total|Grand\s*Total|Invoice\s*Total|Bill\s*Total|Total\s*Amount|Total)\s*[:\-]?\s*(?:Rs\.?|LKR)?\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)/i);
+      const clean = String(text || "").replace(/\s+/g, " ");
+      const labeled = clean.match(/(?:Net\s*Total|Grand\s*Total|Invoice\s*Total|Bill\s*Total|Total\s*Amount|Net\s*Amount|Bill\s*Amount|Total|Amount|Rs\.?|LKR)\s*[:\-]?\s*(?:Rs\.?|LKR)?\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)/i);
       if (labeled && labeled[1]) {
         const val = Number(labeled[1].replace(/,/g, ''));
         if (val > 0) return val;
       }
+
       const nums = (clean.match(/\b\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?\b/g) || [])
         .map(n => Number(n.replace(/,/g, '')))
-        .filter(n => n >= 50 && n <= 10000000);
+        .filter(n => n >= 10 && n <= 10000000);
+
       return nums.length ? nums[nums.length - 1] : 0;
     }
 
@@ -1478,7 +1492,7 @@
       const route = routeOverride || pageObj.detectedRoute || TERRITORY_ROUTES[activeTerritory][0].label;
       const shopName = (document.getElementById(`pdf-shop-${pageObj._idx}`)?.value || pageObj.detectedShop || `${activeTerritory} Shop`).trim();
       const custCode = (document.getElementById(`pdf-cust-${pageObj._idx}`)?.value || pageObj.detectedCustCode || "-").trim();
-      const amount = Number(document.getElementById(`pdf-amt-${pageObj._idx}`)?.value || pageObj.detectedAmount || 0);
+      const amount = Number(document.getElementById(`pdf-amt-${pageObj._idx}`)?.value ?? pageObj.detectedAmount ?? 0);
       const barcodeVal = pageObj.barcodePayload || buildBarcodeValue(activeTerritory, pageObj.billId);
 
       const existing = db.bills.find(b =>
@@ -1488,16 +1502,17 @@
       );
 
       if (existing) {
-        existing.shopName = shopName || existing.shopName;
-        existing.custCode = custCode || existing.custCode;
+        if (shopName) existing.shopName = shopName;
+        if (custCode && custCode !== "-") existing.custCode = custCode;
         existing.route = route;
         existing.date = pageObj.detectedDate || existing.date;
-        if (amount > 0) existing.amount = amount;
+        existing.amount = amount;
+        if (existing.cancelType === "FULL_CANCEL") existing.paid = amount;
         existing.barcode = barcodeVal;
         existing.carrier = pageObj.detectedStaff || existing.carrier;
         if (pageObj.cancelType && pageObj.cancelType !== "NONE") existing.cancelType = pageObj.cancelType;
         if (pageObj.returnType && pageObj.returnType !== "NONE") existing.returnType = pageObj.returnType;
-        existing.lastAction = `Auto-synced (${barcodeVal})`;
+        existing.lastAction = `Synced (${barcodeVal})`;
       } else {
         db.bills.unshift({
           id: pageObj.billId,
@@ -2020,26 +2035,25 @@
       const lookupId = (parsed?.id || String(rawInput).trim()).toUpperCase();
       const scanTerr = parsed?.territory || null;
 
-      let bill = findMatchingBillByCode(lookupId);
+      const cleanId = lookupId.replace(/[^A-Z0-9]/gi, "").toUpperCase();
+      const tailNum = cleanId.replace(/^(AN|MH)/i, "").replace(/^0+/, "");
 
-      if (!bill && renderedPages.length) {
-        const cleanId = lookupId.replace(/[^A-Z0-9]/gi, "").toUpperCase();
-        const tailNum = cleanId.replace(/^(AN|MH)/i, "").replace(/^0+/, "");
-        const matchingPage = renderedPages.find(p => {
-          if (!p.hasBarcode) return false;
-          const pBc = String(p.barcodePayload || "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
-          const pId = String(p.billId || "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
-          const pDigits = pId.replace(/[^0-9]/g, "").replace(/^0+/, "");
-          return pBc === cleanId || pId === cleanId || (tailNum && pDigits && (pDigits === tailNum || pDigits.endsWith(tailNum)));
-        });
-        if (matchingPage) {
-          upsertPageBillIntoDb(matchingPage, matchingPage.detectedRoute);
-          saveDB();
-          bill = db.bills.find(b => b.id === matchingPage.billId);
-        }
+      const matchingPage = renderedPages.find(p => {
+        if (!p.hasBarcode) return false;
+        const pBc = String(p.barcodePayload || "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
+        const pId = String(p.billId || "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
+        const pDigits = pId.replace(/[^0-9]/g, "").replace(/^0+/, "");
+        return pBc === cleanId || pId === cleanId || (tailNum && pDigits && (pDigits === tailNum || pDigits.endsWith(tailNum)));
+      });
+
+      if (matchingPage) {
+        upsertPageBillIntoDb(matchingPage, matchingPage.detectedRoute);
+        saveDB();
       }
 
-      const actualTerr = bill ? bill.territory : scanTerr;
+      let bill = findMatchingBillByCode(lookupId);
+
+      const actualTerr = bill ? bill.territory : (matchingPage?.detectedTerr || scanTerr);
       if (actualTerr && actualTerr !== activeTerritory) {
         document.getElementById('active-bill-card').classList.add('hidden');
         statusEl.innerText = `Access Denied: ${lookupId} belongs to ${actualTerr}. Switch to ${actualTerr} login.`;
@@ -2067,7 +2081,7 @@
           returnAmt: 0,
           carrier: staff,
           dispatchedMorning: true,
-          lastAction: `Auto-loaded ${lookupId} in ${activeTerritory}`
+          lastAction: `Loaded ${lookupId} in ${activeTerritory}`
         };
         db.bills.unshift(bill);
         saveDB();
