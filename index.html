@@ -54,13 +54,15 @@
       height: auto;
     }
 
+    /* No border, no box frame — barcode only, positioned cleanly without clipping address */
     .barcode-top-right {
       position: absolute;
-      top: 56px;
-      right: 24px;
-      background: #ffffff;
-      border: 2.5px solid #000000;
-      padding: 6px 10px;
+      top: 48px;
+      right: 6px;
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
       z-index: 30;
       width: auto !important;
       height: auto !important;
@@ -118,10 +120,12 @@
       }
 
       .barcode-top-right {
-        top: 26mm;
-        right: 12mm;
-        padding: 3mm 5mm;
-        border: 2px solid #000000;
+        top: 22mm;
+        right: 4mm;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        background: transparent !important;
         width: auto !important;
         height: auto !important;
         max-width: none !important;
@@ -274,7 +278,7 @@
       <div class="flex items-center justify-between">
         <div>
           <h2 id="sfa-heading" class="text-xl font-extrabold text-[#13311c]">SFA Invoice + Page-1 Barcode</h2>
-          <p id="sfa-subheading" class="text-xs text-stone-500">Auto-detects route & auto-saves full bill details + Bold LQ-310 Barcode</p>
+          <p id="sfa-subheading" class="text-xs text-stone-500">Auto-detects route & auto-saves full bill details · Borderless LQ-310 Barcode</p>
         </div>
         <button onclick="switchTab('credit')" class="brand-gold text-[#13311c] font-bold text-xs px-3 py-2 rounded-lg">
           Credit Tab →
@@ -285,7 +289,7 @@
         <div class="flex items-center justify-between gap-2">
           <div>
             <h3 class="font-bold text-sm text-[#13311c]">📄 Upload Freelan SFA / Direct Sales PDF</h3>
-            <p id="pdf-upload-hint" class="text-[11px] text-stone-500">Automatically detects route, saves all bill details & prints bold LQ-310 barcode on Page 1</p>
+            <p id="pdf-upload-hint" class="text-[11px] text-stone-500">Automatically identifies route, saves all bill details & prints bold LQ-310 barcode on Page 1</p>
           </div>
           <label class="brand-green text-white text-xs font-bold px-3 py-2.5 rounded-xl cursor-pointer shrink-0">
             Upload PDF
@@ -413,6 +417,22 @@
               <div id="ab-balance" class="text-xl font-extrabold text-red-700"></div>
               <div id="ab-breakdown" class="text-[11px] font-semibold text-stone-700 mt-0.5"></div>
               <div id="ab-shop-total-due" class="text-[11px] font-bold text-[#13311c] mt-0.5"></div>
+            </div>
+          </div>
+
+          <!-- Quick Fix / Edit Scanned Bill Details (Shop, Outlet ID, Route, Total Amount) -->
+          <div class="bg-white border border-stone-300 rounded-xl p-3 space-y-2">
+            <div class="text-[11px] font-extrabold text-[#13311c]">✏️ Edit / Complete Bill Details (Shop, Outlet Code, Route & Total Rs.)</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <input id="ab-edit-shop" type="text" placeholder="Shop Name" class="p-2 rounded-lg border border-stone-300 text-xs bg-white" />
+              <input id="ab-edit-cust" type="text" placeholder="Outlet / Customer ID" class="p-2 rounded-lg border border-stone-300 text-xs bg-white" />
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <select id="ab-edit-route" class="p-2 rounded-lg border border-stone-300 text-xs bg-white"></select>
+              <input id="ab-edit-amount" type="number" placeholder="Bill Total Amount (Rs.)" class="p-2 rounded-lg border border-stone-300 text-xs bg-white" />
+              <button onclick="saveScannedBillCoreDetails()" class="bg-[#13311c] text-white font-bold py-2 px-3 rounded-lg text-xs">
+                ✓ Save Bill Details
+              </button>
             </div>
           </div>
 
@@ -767,6 +787,7 @@
       return `${prefix}${tail || "1"}`;
     }
 
+    // Barcode only — no outer border box or extra padding so address text is never covered/clipped
     function renderCleanBarcodeIntoBox(boxEl, barcodeText, preset = getBarcodePreset()) {
       if (!boxEl || !window.JsBarcode) return;
       boxEl.innerHTML = "";
@@ -781,8 +802,8 @@
         displayValue: true,
         fontSize: preset.fontSize,
         fontOptions: "bold",
-        textMargin: 5,
-        margin: 10,
+        textMargin: 3,
+        margin: 2,
         background: "#ffffff",
         lineColor: "#000000"
       });
@@ -795,8 +816,8 @@
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        canvas.width = img.width || 260;
-        canvas.height = img.height || 110;
+        canvas.width = img.width || 240;
+        canvas.height = img.height || 100;
         const ctx = canvas.getContext("2d");
 
         ctx.fillStyle = "#ffffff";
@@ -819,8 +840,9 @@
         finalImg.src = canvas.toDataURL("image/png");
         finalImg.alt = `Barcode ${cleanCode}`;
         finalImg.style.display = "block";
-        finalImg.style.maxWidth = "255px";
+        finalImg.style.maxWidth = "220px";
         finalImg.style.height = "auto";
+        finalImg.style.border = "none";
 
         boxEl.innerHTML = "";
         boxEl.appendChild(finalImg);
@@ -920,7 +942,7 @@
       }
     };
 
-    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v18')) || defaultData;
+    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v19')) || defaultData;
     if (!db.scannedTodayByTerr) db.scannedTodayByTerr = { Anuradhapura: [], Mihintale: [] };
 
     let activeTerritory = sessionStorage.getItem('gd_active_territory') || null;
@@ -970,6 +992,7 @@
       const prevBrowseRoute = document.getElementById('browse-route-select')?.value;
       const prevFilterRoute = document.getElementById('filter-route')?.value;
       const prevSheetRoute = document.getElementById('sheet-route-select')?.value;
+      const prevEditRoute = document.getElementById('ab-edit-route')?.value;
 
       const routeOpts = routes.map(r => `<option value="${r.label}">${r.label}</option>`).join('');
       const staffOpts = staff.map(st => `<option value="${st}">${st}</option>`).join('');
@@ -980,6 +1003,7 @@
       document.getElementById('browse-route-select').innerHTML = `<option value="ALL">All ${routes.length} ${activeTerritory} Routes</option>` + routeOpts;
       document.getElementById('filter-route').innerHTML = `<option value="ALL">All ${routes.length} ${activeTerritory} Routes</option>` + routeOpts;
       document.getElementById('sheet-route-select').innerHTML = routeOpts;
+      document.getElementById('ab-edit-route').innerHTML = routeOpts;
       document.getElementById('sheet-staff-select').innerHTML = staffOpts;
       document.getElementById('new-cr-carrier').innerHTML = staffOpts;
       document.getElementById('ab-carrier').innerHTML = `<option value="">-- Assign Rep / Cash --</option>` + staffOpts;
@@ -990,6 +1014,7 @@
       if (prevBrowseRoute && (prevBrowseRoute === "ALL" || routes.some(r => r.label === prevBrowseRoute))) document.getElementById('browse-route-select').value = prevBrowseRoute;
       if (prevFilterRoute && (prevFilterRoute === "ALL" || routes.some(r => r.label === prevFilterRoute))) document.getElementById('filter-route').value = prevFilterRoute;
       if (prevSheetRoute && routes.some(r => r.label === prevSheetRoute)) document.getElementById('sheet-route-select').value = prevSheetRoute;
+      if (prevEditRoute && routes.some(r => r.label === prevEditRoute)) document.getElementById('ab-edit-route').value = prevEditRoute;
 
       document.getElementById('route-color-legend').innerHTML = routes.map(r => {
         const countInRoute = db.shops.filter(s => s.territory === activeTerritory && s.route === r.label).length;
@@ -1059,7 +1084,7 @@
     }
 
     function saveDB() {
-      localStorage.setItem('gd_strict_agency_v18', JSON.stringify(db));
+      localStorage.setItem('gd_strict_agency_v19', JSON.stringify(db));
       rebuildTerritoryDropdowns();
       refreshAll();
     }
@@ -1130,12 +1155,10 @@
         .trim();
     }
 
-    // Automatically identify route from PDF text, route code, location keywords, or saved shop records
     function identifyRouteFromPdfPage(pageText, shopName, custCode) {
       const routes = TERRITORY_ROUTES[activeTerritory] || [];
       const clean = String(pageText || "");
 
-      // 1. Direct route code match (e.g., RAA001..RAA006 or RAM001..RAM006)
       const codeMatch = clean.match(/\b(RA[AM]\d{2,4}|R\d{2,4})\b/i);
       if (codeMatch) {
         const code = codeMatch[1].toUpperCase();
@@ -1143,7 +1166,6 @@
         if (exact) return exact.label;
       }
 
-      // 2. Match against already saved/imported shops by Outlet ID or Shop Name
       const cCodeLow = (custCode || "").trim().toLowerCase();
       const sNameLow = (shopName || "").trim().toLowerCase();
       if (cCodeLow && cCodeLow !== "-") {
@@ -1155,7 +1177,6 @@
         if (byName && byName.route) return byName.route;
       }
 
-      // 3. Match route keywords / town names inside the PDF page text
       const lowText = clean.toLowerCase();
       let bestRoute = null;
       let bestScore = 0;
@@ -1179,8 +1200,6 @@
       }
 
       if (bestRoute && bestScore > 0) return bestRoute;
-
-      // 4. Fallback to first route of active territory
       return routes[0]?.label || "";
     }
 
@@ -1374,11 +1393,11 @@
 
     function extractInvoiceNumber(text) {
       const cleanText = (text || "").replace(/\s+/g, " ");
-      const invMatch = cleanText.match(/Invoice\s*(?:No\.?|#|Number)?\s*[:\-]?\s*([A-Z0-9][A-Z0-9_\-\s]{3,28}?)(?=\s+(?:Invoice\s*Date|Sales\s*Person|Order\s*Id|Invoiced\s*To|Tel|$))/i);
+      const invMatch = cleanText.match(/Invoice\s*(?:No\.?|#|Number)?\s*[:\-]?\s*([A-Z0-9][A-Z0-9_\-\s]{2,28}?)(?=\s+(?:Invoice\s*Date|Sales\s*Person|Order\s*Id|Invoiced\s*To|Tel|$))/i);
       let rawVal = invMatch ? invMatch[1] : "";
 
       if (!rawVal) {
-        const fallback = cleanText.match(/(?:Invoice\s*(?:No\.?|#|Number)?|Bill\s*(?:No\.?|#)?|INV)\s*[:\-]?\s*([A-Z0-9_\-\s]{4,28})/i);
+        const fallback = cleanText.match(/(?:Invoice\s*(?:No\.?|#|Number)?|Bill\s*(?:No\.?|#)?|INV)\s*[:\-]?\s*([A-Z0-9_\-\s]{3,28})/i);
         rawVal = fallback ? fallback[1] : "";
       }
 
@@ -1394,6 +1413,19 @@
         return m[1].trim().replace(/\b(?:CUS\d+|R\d{2,3}-\d+)\b/gi, "").trim().slice(0, 42);
       }
       return fallbackShop;
+    }
+
+    function extractAmountFromPdf(text) {
+      const clean = (text || "").replace(/\s+/g, " ");
+      const labeled = clean.match(/(?:Net\s*Total|Grand\s*Total|Invoice\s*Total|Bill\s*Total|Total\s*Amount|Total)\s*[:\-]?\s*(?:Rs\.?|LKR)?\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)/i);
+      if (labeled && labeled[1]) {
+        const val = Number(labeled[1].replace(/,/g, ''));
+        if (val > 0) return val;
+      }
+      const nums = (clean.match(/\b\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?\b/g) || [])
+        .map(n => Number(n.replace(/,/g, '')))
+        .filter(n => n >= 50 && n <= 10000000);
+      return nums.length ? nums[nums.length - 1] : 0;
     }
 
     function extractSalesPersonFromPdf(text, defaultStaff) {
@@ -1447,7 +1479,6 @@
       return "NONE";
     }
 
-    // Automatically upsert bill details + auto-detected route into db.bills
     function upsertPageBillIntoDb(pageObj, routeOverride = null) {
       if (!pageObj || !pageObj.hasBarcode) return;
       if (pageObj.detectedTerr !== activeTerritory) return;
@@ -1566,9 +1597,7 @@
 
           const custMatch = pageText.match(/\b((?:R\d{2,3}|CUS)\d{0,4}-?\d{3,7})\b/i);
           const dateMatch = pageText.match(/\b(\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4})\b/);
-          const nums = (pageText.match(/\b\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?\b/g) || [])
-            .map(n => Number(n.replace(/,/g, '')))
-            .filter(n => n >= 100 && n <= 10000000);
+          const pageAmount = extractAmountFromPdf(pageText);
 
           let hasBarcode = false;
           let barcodePayload = "";
@@ -1583,7 +1612,7 @@
 
             currentBillCust = custMatch ? custMatch[1].toUpperCase() : `CUST-${pageNum}`;
             currentBillDate = dateMatch ? dateMatch[1] : daysAgo(0);
-            currentBillAmount = nums.length ? nums[nums.length - 1] : 0;
+            currentBillAmount = pageAmount;
             currentBillShop = extractShopNameFromPdf(pageText, `${currentBillTerr} Shop ${pageNum}`);
             currentBillStaff = extractSalesPersonFromPdf(pageText, TERRITORY_STAFF[activeTerritory][0]);
             currentBillCancel = detectCancelFromPdfText(pageText);
@@ -1593,8 +1622,8 @@
             barcodePayload = buildBarcodeValue(currentBillTerr, currentBillId);
           } else {
             hasBarcode = false;
-            if (nums.length && currentBillAmount === 0) {
-              currentBillAmount = nums[nums.length - 1];
+            if (pageAmount > 0 && currentBillAmount === 0) {
+              currentBillAmount = pageAmount;
             }
             if (currentBillCancel === "NONE") currentBillCancel = detectCancelFromPdfText(pageText);
             if (currentBillReturn === "NONE") currentBillReturn = detectReturnFromPdfText(pageText);
@@ -1676,7 +1705,7 @@
                 ${getReturnBadgeHtml(p.returnType, 0)}
               </div>
               <div class="text-[11px] text-stone-500 mt-0.5">
-                Shop: ${p.detectedShop} · Code: ${p.detectedCustCode}${p.hasBarcode ? ` · Barcode: ${p.barcodePayload}` : ` · Same bill continuation (Barcode skipped)`}
+                Shop: ${p.detectedShop} · Code: ${p.detectedCustCode} · Amt: ${fmt(p.detectedAmount)}${p.hasBarcode ? ` · Barcode: ${p.barcodePayload}` : ` · Same bill continuation (Barcode skipped)`}
               </div>
             </div>
             <div class="flex flex-wrap items-center gap-1.5">
@@ -1795,7 +1824,7 @@
       if (!list.includes(billId)) {
         list.push(billId);
         db.scannedTodayByTerr[activeTerritory] = list;
-        localStorage.setItem('gd_strict_agency_v18', JSON.stringify(db));
+        localStorage.setItem('gd_strict_agency_v19', JSON.stringify(db));
         updateScannedSheetBanner();
       }
     }
@@ -1966,6 +1995,19 @@
       event.target.value = "";
     }
 
+    function findMatchingBillByCode(lookupId) {
+      const cleanId = String(lookupId || "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
+      const tailNum = cleanId.replace(/^(AN|MH)/i, "");
+
+      return db.bills.find(b => {
+        const bIdClean = String(b.id || "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
+        const bBcClean = String(b.barcode || buildBarcodeValue(b.territory, b.id)).replace(/[^A-Z0-9]/gi, "").toUpperCase();
+        if (bIdClean === cleanId || bBcClean === cleanId) return true;
+        if (tailNum && (bIdClean.endsWith(tailNum) || bBcClean.endsWith(tailNum))) return true;
+        return false;
+      });
+    }
+
     function openBillSettlement(rawInput) {
       if (!rawInput || !activeTerritory) return;
       const statusEl = document.getElementById('barcode-scanner-status');
@@ -1974,17 +2016,17 @@
       const lookupId = (parsed?.id || String(rawInput).trim()).toUpperCase();
       const scanTerr = parsed?.territory || null;
 
-      let bill = db.bills.find(b =>
-        b.id.toUpperCase() === lookupId ||
-        (b.barcode && b.barcode.toUpperCase() === lookupId) ||
-        buildBarcodeValue(b.territory, b.id).toUpperCase() === lookupId
-      );
+      let bill = findMatchingBillByCode(lookupId);
 
       if (!bill && renderedPages.length) {
-        const matchingPage = renderedPages.find(p =>
-          p.hasBarcode &&
-          (p.barcodePayload.toUpperCase() === lookupId || p.billId.toUpperCase() === lookupId)
-        );
+        const cleanId = lookupId.replace(/[^A-Z0-9]/gi, "").toUpperCase();
+        const tailNum = cleanId.replace(/^(AN|MH)/i, "");
+        const matchingPage = renderedPages.find(p => {
+          if (!p.hasBarcode) return false;
+          const pBc = String(p.barcodePayload || "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
+          const pId = String(p.billId || "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
+          return pBc === cleanId || pId === cleanId || (tailNum && (pBc.endsWith(tailNum) || pId.endsWith(tailNum)));
+        });
         if (matchingPage) {
           upsertPageBillIntoDb(matchingPage, matchingPage.detectedRoute);
           saveDB();
@@ -2004,12 +2046,14 @@
       if (!bill) {
         const route = document.getElementById('sheet-route-select')?.value || TERRITORY_ROUTES[activeTerritory][0].label;
         const staff = document.getElementById('sheet-staff-select')?.value || TERRITORY_STAFF[activeTerritory][0];
+        const fallbackShop = db.shops.find(s => s.territory === activeTerritory && s.route === route);
+
         bill = {
           id: lookupId,
           barcode: buildBarcodeValue(activeTerritory, lookupId),
           territory: activeTerritory,
-          shopName: `${activeTerritory} Shop (${lookupId})`,
-          custCode: "-",
+          shopName: fallbackShop ? fallbackShop.name : `${activeTerritory} Shop (${lookupId})`,
+          custCode: fallbackShop ? fallbackShop.custCode : "-",
           route,
           date: daysAgo(0),
           amount: Number(parsed?.amount || 0),
@@ -2051,11 +2095,38 @@
       document.getElementById('ab-shop-total-due').innerText =
         `Shop Total Outstanding: ${fmt(shopInfo.totalDue)} (${shopInfo.openBillsCount} open bill(s))`;
 
+      document.getElementById('ab-edit-shop').value = bill.shopName || "";
+      document.getElementById('ab-edit-cust').value = bill.custCode || "";
+      const editRouteSel = document.getElementById('ab-edit-route');
+      if (editRouteSel && TERRITORY_ROUTES[activeTerritory].some(r => r.label === bill.route)) {
+        editRouteSel.value = bill.route;
+      }
+      document.getElementById('ab-edit-amount').value = bill.amount || "";
+
       document.getElementById('ab-cancel-type').value = bill.cancelType || "NONE";
       document.getElementById('ab-return-type').value = bill.returnType || "NONE";
       document.getElementById('ab-return-amt').value = bill.returnAmt || "";
       document.getElementById('ab-carrier').value = bill.carrier || "";
       document.getElementById('ab-partial-input').value = bill.paid > 0 && bill.paid < bill.amount ? String(bill.paid) : "";
+    }
+
+    function saveScannedBillCoreDetails() {
+      const bill = db.bills.find(b => b.id === currentScannedBillId && b.territory === activeTerritory);
+      if (!bill) return;
+
+      const newShop = (document.getElementById('ab-edit-shop')?.value || "").trim();
+      const newCust = (document.getElementById('ab-edit-cust')?.value || "").trim();
+      const newRoute = document.getElementById('ab-edit-route')?.value || bill.route;
+      const newAmount = Number(document.getElementById('ab-edit-amount')?.value || 0);
+
+      if (newShop) bill.shopName = newShop;
+      if (newCust) bill.custCode = newCust;
+      if (newRoute) bill.route = newRoute;
+      if (newAmount > 0) bill.amount = newAmount;
+
+      bill.lastAction = `Updated Bill Details (${fmt(bill.amount)})`;
+      saveDB();
+      openBillSettlement(bill.id);
     }
 
     function updateBillCancelType(cancelType) {
