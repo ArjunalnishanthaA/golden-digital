@@ -56,14 +56,13 @@
 
     .qr-top-right {
       position: absolute;
-      top: 8px;
-      right: 8px;
+      top: 4px;
+      right: 4px;
       background: #ffffff;
-      border: 2px solid #000000;
-      padding: 4px;
+      border: 1.5px solid #000000;
+      padding: 2px;
       z-index: 20;
       text-align: center;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.14);
     }
 
     .qr-top-right img,
@@ -74,7 +73,7 @@
 
     @media print {
       @page {
-        margin: 5mm;
+        margin: 4mm;
         size: auto;
       }
 
@@ -112,9 +111,8 @@
       }
 
       .qr-top-right {
-        top: 4mm;
-        right: 4mm;
-        box-shadow: none !important;
+        top: 2mm;
+        right: 2mm;
       }
 
       .dispatch-report-sheet {
@@ -287,11 +285,11 @@
 
         <div id="pdf-controls" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-stone-200">
           <div>
-            <label class="text-[11px] font-semibold text-stone-600">QR Size (Clean Header Fit)</label>
+            <label class="text-[11px] font-semibold text-stone-600">QR Size (Clear of Invoice No)</label>
             <select id="qr-size-select" onchange="rerenderAllPageQRs()" class="w-full mt-1 p-2 rounded-lg border border-stone-300 text-xs bg-white">
-              <option value="96">Compact (96px)</option>
-              <option value="116" selected>Clean Top-Right (116px)</option>
-              <option value="134">Medium (134px)</option>
+              <option value="86">Small (86px)</option>
+              <option value="100" selected>Clear Top-Right (100px)</option>
+              <option value="116">Medium (116px)</option>
             </select>
           </div>
           <div>
@@ -1442,7 +1440,7 @@
     }
 
     function getQrPx() {
-      return Number(document.getElementById('qr-size-select')?.value || 116);
+      return Number(document.getElementById('qr-size-select')?.value || 100);
     }
 
     function renderSfaCards() {
@@ -1487,7 +1485,7 @@
           <div id="sheet-card-${idx}" class="invoice-sheet border border-stone-300 rounded-lg">
             <img src="${p.imgSrc}" alt="SFA Invoice Page ${p.pageNum}" />
             ${p.hasQr ? `
-              <div class="qr-top-right" style="max-width: ${qrSize + 12}px;">
+              <div class="qr-top-right" style="max-width: ${qrSize + 6}px;">
                 <div id="qr-box-${idx}"></div>
               </div>
             ` : ""}
@@ -1505,7 +1503,7 @@
         const box = document.getElementById(`qr-box-${idx}`);
         const badge = document.querySelector(`#sheet-card-${idx} .qr-top-right`);
         if (!box) return;
-        if (badge) badge.style.maxWidth = `${qrSize + 12}px`;
+        if (badge) badge.style.maxWidth = `${qrSize + 6}px`;
         box.innerHTML = "";
         new QRCode(box, {
           text: p.qrPayload,
