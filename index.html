@@ -54,7 +54,7 @@
       height: auto;
     }
 
-    /* No border, no box frame — barcode only, positioned cleanly without clipping address */
+    /* Short, clean, borderless barcode positioned cleanly without clipping address */
     .barcode-top-right {
       position: absolute;
       top: 48px;
@@ -278,7 +278,7 @@
       <div class="flex items-center justify-between">
         <div>
           <h2 id="sfa-heading" class="text-xl font-extrabold text-[#13311c]">SFA Invoice + Page-1 Barcode</h2>
-          <p id="sfa-subheading" class="text-xs text-stone-500">Auto-detects route & auto-saves full bill details · Borderless LQ-310 Barcode</p>
+          <p id="sfa-subheading" class="text-xs text-stone-500">Auto-detects route & auto-saves full bill details · Short LQ-310 Barcode</p>
         </div>
         <button onclick="switchTab('credit')" class="brand-gold text-[#13311c] font-bold text-xs px-3 py-2 rounded-lg">
           Credit Tab →
@@ -289,7 +289,7 @@
         <div class="flex items-center justify-between gap-2">
           <div>
             <h3 class="font-bold text-sm text-[#13311c]">📄 Upload Freelan SFA / Direct Sales PDF</h3>
-            <p id="pdf-upload-hint" class="text-[11px] text-stone-500">Automatically identifies route, saves all bill details & prints bold LQ-310 barcode on Page 1</p>
+            <p id="pdf-upload-hint" class="text-[11px] text-stone-500">Automatically identifies route, saves all bill details & prints short LQ-310 barcode on Page 1</p>
           </div>
           <label class="brand-green text-white text-xs font-bold px-3 py-2.5 rounded-xl cursor-pointer shrink-0">
             Upload PDF
@@ -301,11 +301,11 @@
 
         <div id="pdf-controls" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-stone-200">
           <div>
-            <label class="text-[11px] font-semibold text-stone-600">Barcode Size (LQ-310 Dot-Matrix)</label>
+            <label class="text-[11px] font-semibold text-stone-600">Barcode Size (Short LQ-310)</label>
             <select id="barcode-size-select" onchange="rerenderAllPageBarcodes()" class="w-full mt-1 p-2 rounded-lg border border-stone-300 text-xs bg-white">
-              <option value="compact">Compact (64px height)</option>
-              <option value="standard" selected>LQ-310 Extra Bold (80px height)</option>
-              <option value="bold">Jumbo Thick (94px height)</option>
+              <option value="compact">Extra Short (56px height)</option>
+              <option value="standard" selected>Short LQ-310 (66px height)</option>
+              <option value="bold">Medium Bold (76px height)</option>
             </select>
           </div>
           <div>
@@ -396,7 +396,7 @@
             <option value="">-- Select Bill in Active Territory --</option>
           </select>
           <div class="flex gap-2">
-            <input id="manual-barcode-code" type="text" placeholder="Enter Barcode / Bill ID (e.g. AN1220)" class="flex-1 p-2.5 rounded-xl border border-stone-300 text-xs bg-white" />
+            <input id="manual-barcode-code" type="text" placeholder="Enter Short Barcode / Bill ID (e.g. AN1220)" class="flex-1 p-2.5 rounded-xl border border-stone-300 text-xs bg-white" />
             <button onclick="openBillSettlement(document.getElementById('manual-barcode-code').value.trim())" class="bg-[#13311c] text-white text-xs font-bold px-3 rounded-xl">Load</button>
           </div>
         </div>
@@ -772,27 +772,36 @@
       ]
     };
 
+    // Short barcode width/height so CODE39 stays compact and quick to scan
     function getBarcodePreset() {
       const mode = document.getElementById('barcode-size-select')?.value || 'standard';
-      if (mode === 'compact') return { width: 3.6, height: 64, fontSize: 15 };
-      if (mode === 'bold') return { width: 5.0, height: 94, fontSize: 18 };
-      return { width: 4.4, height: 80, fontSize: 17 };
+      if (mode === 'compact') return { width: 1.9, height: 56, fontSize: 13 };
+      if (mode === 'bold') return { width: 2.9, height: 76, fontSize: 15 };
+      return { width: 2.4, height: 66, fontSize: 14 };
     }
 
+    // Shorten barcode text (e.g. AN1220 / MH1220) while keeping full bill ID linked in DB
     function buildBarcodeValue(terr, billId) {
       const prefix = terr === "Mihintale" ? "MH" : "AN";
-      const raw = String(billId || "1").replace(/^(AN|MH)[_\-]/i, "").trim();
-      const parts = raw.split(/[_\-]/);
-      const tail = (parts[parts.length - 1] || raw || "1").replace(/[^A-Z0-9]/gi, "").toUpperCase().slice(0, 6);
-      return `${prefix}${tail || "1"}`;
+      const raw = String(billId || "1").replace(/^(AN|MH)[_\-]?/i, "").trim();
+      const digitsOnly = raw.replace(/[^0-9]/g, "");
+      const alnumOnly = raw.replace(/[^A-Z0-9]/gi, "").toUpperCase();
+
+      let shortTail = "";
+      if (digitsOnly.length >= 3) {
+        shortTail = digitsOnly.slice(-4);
+      } else {
+        shortTail = alnumOnly.slice(-4) || "1";
+      }
+      return `${prefix}${shortTail}`;
     }
 
-    // Barcode only — no outer border box or extra padding so address text is never covered/clipped
+    // Barcode only — short, clean, no border box or extra padding
     function renderCleanBarcodeIntoBox(boxEl, barcodeText, preset = getBarcodePreset()) {
       if (!boxEl || !window.JsBarcode) return;
       boxEl.innerHTML = "";
 
-      const cleanCode = String(barcodeText || "AN1220").replace(/[^A-Z0-9]/gi, "").toUpperCase().slice(0, 9) || "AN1220";
+      const cleanCode = String(barcodeText || "AN1220").replace(/[^A-Z0-9]/gi, "").toUpperCase().slice(0, 7) || "AN1220";
       const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 
       JsBarcode(svgEl, cleanCode, {
@@ -802,8 +811,8 @@
         displayValue: true,
         fontSize: preset.fontSize,
         fontOptions: "bold",
-        textMargin: 3,
-        margin: 2,
+        textMargin: 2,
+        margin: 1,
         background: "#ffffff",
         lineColor: "#000000"
       });
@@ -816,8 +825,8 @@
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        canvas.width = img.width || 240;
-        canvas.height = img.height || 100;
+        canvas.width = img.width || 160;
+        canvas.height = img.height || 80;
         const ctx = canvas.getContext("2d");
 
         ctx.fillStyle = "#ffffff";
@@ -840,7 +849,7 @@
         finalImg.src = canvas.toDataURL("image/png");
         finalImg.alt = `Barcode ${cleanCode}`;
         finalImg.style.display = "block";
-        finalImg.style.maxWidth = "220px";
+        finalImg.style.maxWidth = "155px";
         finalImg.style.height = "auto";
         finalImg.style.border = "none";
 
@@ -942,7 +951,7 @@
       }
     };
 
-    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v19')) || defaultData;
+    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v20')) || defaultData;
     if (!db.scannedTodayByTerr) db.scannedTodayByTerr = { Anuradhapura: [], Mihintale: [] };
 
     let activeTerritory = sessionStorage.getItem('gd_active_territory') || null;
@@ -1069,7 +1078,7 @@
 
       document.getElementById('sfa-heading').innerText = `${activeTerritory} SFA + Page-1 Barcode`;
       document.getElementById('sfa-subheading').innerText = `Auto-detects route & auto-saves full bill details · ${otherTerr} bills blocked`;
-      document.getElementById('pdf-upload-hint').innerText = `Automatically identifies route, saves all bill details & prints bold LQ-310 barcode on Page 1`;
+      document.getElementById('pdf-upload-hint').innerText = `Automatically identifies route, saves all bill details & prints short LQ-310 barcode on Page 1`;
 
       document.getElementById('credit-heading').innerText = `${activeTerritory} Credit & Barcode Scanner`;
       document.getElementById('credit-subheading').innerText = `${staff[0]} | ${staff[1]} · Scan barcode to view full bill details & settle`;
@@ -1084,7 +1093,7 @@
     }
 
     function saveDB() {
-      localStorage.setItem('gd_strict_agency_v19', JSON.stringify(db));
+      localStorage.setItem('gd_strict_agency_v20', JSON.stringify(db));
       rebuildTerritoryDropdowns();
       refreshAll();
     }
@@ -1705,7 +1714,7 @@
                 ${getReturnBadgeHtml(p.returnType, 0)}
               </div>
               <div class="text-[11px] text-stone-500 mt-0.5">
-                Shop: ${p.detectedShop} · Code: ${p.detectedCustCode} · Amt: ${fmt(p.detectedAmount)}${p.hasBarcode ? ` · Barcode: ${p.barcodePayload}` : ` · Same bill continuation (Barcode skipped)`}
+                Shop: ${p.detectedShop} · Code: ${p.detectedCustCode} · Amt: ${fmt(p.detectedAmount)}${p.hasBarcode ? ` · Short Barcode: ${p.barcodePayload}` : ` · Same bill continuation (Barcode skipped)`}
               </div>
             </div>
             <div class="flex flex-wrap items-center gap-1.5">
@@ -1824,7 +1833,7 @@
       if (!list.includes(billId)) {
         list.push(billId);
         db.scannedTodayByTerr[activeTerritory] = list;
-        localStorage.setItem('gd_strict_agency_v19', JSON.stringify(db));
+        localStorage.setItem('gd_strict_agency_v20', JSON.stringify(db));
         updateScannedSheetBanner();
       }
     }
@@ -1951,7 +1960,7 @@
           { facingMode: "environment" },
           {
             fps: 12,
-            qrbox: { width: 260, height: 110 },
+            qrbox: { width: 240, height: 100 },
             formatsToSupport
           },
           async (decodedText) => {
@@ -1961,7 +1970,7 @@
           },
           () => {}
         );
-        statusEl.innerText = `Camera active for ${activeTerritory}—align barcode inside the scan box.`;
+        statusEl.innerText = `Camera active for ${activeTerritory}—align short barcode inside the scan box.`;
       } catch (err) {
         statusEl.innerText = "Camera unavailable/blocked. Use 'Scan Photo' or select/type bill ID.";
       }
