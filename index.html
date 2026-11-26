@@ -303,9 +303,9 @@
           <div>
             <label class="text-[11px] font-semibold text-stone-600">Barcode Size (Short LQ-310)</label>
             <select id="barcode-size-select" onchange="rerenderAllPageBarcodes()" class="w-full mt-1 p-2 rounded-lg border border-stone-300 text-xs bg-white">
-              <option value="compact">Extra Short (56px height)</option>
-              <option value="standard" selected>Short LQ-310 (66px height)</option>
-              <option value="bold">Medium Bold (76px height)</option>
+              <option value="compact">Extra Short (52px height)</option>
+              <option value="standard" selected>Short LQ-310 (58px height)</option>
+              <option value="bold">Medium Bold (68px height)</option>
             </select>
           </div>
           <div>
@@ -388,7 +388,7 @@
           </div>
         </div>
 
-        <div id="barcode-scanner-status" class="text-xs text-stone-600">Tap "Start Camera" or "Scan Photo" to read printed barcode, or select/type a bill ID below.</div>
+        <div id="barcode-scanner-status" class="text-xs font-semibold text-[#13311c]">Tap "Start Camera" or "Scan Photo" to read printed barcode, or select/type a bill ID below.</div>
         <div id="barcode-reader" class="w-full max-w-sm mx-auto rounded-xl overflow-hidden bg-black"></div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
@@ -396,7 +396,7 @@
             <option value="">-- Select Bill in Active Territory --</option>
           </select>
           <div class="flex gap-2">
-            <input id="manual-barcode-code" type="text" placeholder="Enter Short Barcode / Bill ID (e.g. AN1220)" class="flex-1 p-2.5 rounded-xl border border-stone-300 text-xs bg-white" />
+            <input id="manual-barcode-code" type="text" onkeydown="if(event.key==='Enter'){openBillSettlement(this.value.trim())}" placeholder="Enter Short Barcode / Bill ID (e.g. AN1220)" class="flex-1 p-2.5 rounded-xl border border-stone-300 text-xs bg-white" />
             <button onclick="openBillSettlement(document.getElementById('manual-barcode-code').value.trim())" class="bg-[#13311c] text-white text-xs font-bold px-3 rounded-xl">Load</button>
           </div>
         </div>
@@ -772,31 +772,25 @@
       ]
     };
 
-    // Short barcode width/height so CODE39 stays compact and quick to scan
     function getBarcodePreset() {
       const mode = document.getElementById('barcode-size-select')?.value || 'standard';
-      if (mode === 'compact') return { width: 1.9, height: 56, fontSize: 13 };
-      if (mode === 'bold') return { width: 2.9, height: 76, fontSize: 15 };
-      return { width: 2.4, height: 66, fontSize: 14 };
+      if (mode === 'compact') return { width: 1.7, height: 52, fontSize: 13 };
+      if (mode === 'bold') return { width: 2.5, height: 68, fontSize: 15 };
+      return { width: 2.0, height: 58, fontSize: 14 };
     }
 
-    // Shorten barcode text (e.g. AN1220 / MH1220) while keeping full bill ID linked in DB
     function buildBarcodeValue(terr, billId) {
       const prefix = terr === "Mihintale" ? "MH" : "AN";
       const raw = String(billId || "1").replace(/^(AN|MH)[_\-]?/i, "").trim();
       const digitsOnly = raw.replace(/[^0-9]/g, "");
       const alnumOnly = raw.replace(/[^A-Z0-9]/gi, "").toUpperCase();
 
-      let shortTail = "";
-      if (digitsOnly.length >= 3) {
-        shortTail = digitsOnly.slice(-4);
-      } else {
-        shortTail = alnumOnly.slice(-4) || "1";
-      }
+      const shortTail = digitsOnly.length >= 3
+        ? digitsOnly.slice(-4)
+        : (alnumOnly.slice(-4) || "1");
       return `${prefix}${shortTail}`;
     }
 
-    // Barcode only — short, clean, no border box or extra padding
     function renderCleanBarcodeIntoBox(boxEl, barcodeText, preset = getBarcodePreset()) {
       if (!boxEl || !window.JsBarcode) return;
       boxEl.innerHTML = "";
@@ -825,8 +819,8 @@
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        canvas.width = img.width || 160;
-        canvas.height = img.height || 80;
+        canvas.width = img.width || 150;
+        canvas.height = img.height || 75;
         const ctx = canvas.getContext("2d");
 
         ctx.fillStyle = "#ffffff";
@@ -849,7 +843,7 @@
         finalImg.src = canvas.toDataURL("image/png");
         finalImg.alt = `Barcode ${cleanCode}`;
         finalImg.style.display = "block";
-        finalImg.style.maxWidth = "155px";
+        finalImg.style.maxWidth = "145px";
         finalImg.style.height = "auto";
         finalImg.style.border = "none";
 
@@ -951,7 +945,7 @@
       }
     };
 
-    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v20')) || defaultData;
+    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v21')) || defaultData;
     if (!db.scannedTodayByTerr) db.scannedTodayByTerr = { Anuradhapura: [], Mihintale: [] };
 
     let activeTerritory = sessionStorage.getItem('gd_active_territory') || null;
@@ -1093,7 +1087,7 @@
     }
 
     function saveDB() {
-      localStorage.setItem('gd_strict_agency_v20', JSON.stringify(db));
+      localStorage.setItem('gd_strict_agency_v21', JSON.stringify(db));
       rebuildTerritoryDropdowns();
       refreshAll();
     }
@@ -1833,7 +1827,7 @@
       if (!list.includes(billId)) {
         list.push(billId);
         db.scannedTodayByTerr[activeTerritory] = list;
-        localStorage.setItem('gd_strict_agency_v20', JSON.stringify(db));
+        localStorage.setItem('gd_strict_agency_v21', JSON.stringify(db));
         updateScannedSheetBanner();
       }
     }
@@ -2006,35 +2000,52 @@
 
     function findMatchingBillByCode(lookupId) {
       const cleanId = String(lookupId || "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
-      const tailNum = cleanId.replace(/^(AN|MH)/i, "");
+      const tailNum = cleanId.replace(/^(AN|MH)/i, "").replace(/^0+/, "");
 
-      return db.bills.find(b => {
+      const terrBills = db.bills.filter(b => b.territory === activeTerritory);
+
+      // 1. Exact ID or Barcode match
+      let match = terrBills.find(b => {
         const bIdClean = String(b.id || "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
         const bBcClean = String(b.barcode || buildBarcodeValue(b.territory, b.id)).replace(/[^A-Z0-9]/gi, "").toUpperCase();
-        if (bIdClean === cleanId || bBcClean === cleanId) return true;
-        if (tailNum && (bIdClean.endsWith(tailNum) || bBcClean.endsWith(tailNum))) return true;
-        return false;
+        return bIdClean === cleanId || bBcClean === cleanId;
       });
+      if (match) return match;
+
+      // 2. Tail number / suffix match (e.g. 1220 inside AN-INV-001220)
+      if (tailNum) {
+        match = terrBills.find(b => {
+          const bIdDigits = String(b.id || "").replace(/[^0-9]/g, "").replace(/^0+/, "");
+          const bBcDigits = String(b.barcode || buildBarcodeValue(b.territory, b.id)).replace(/[^0-9]/g, "").replace(/^0+/, "");
+          return (bIdDigits && (bIdDigits === tailNum || bIdDigits.endsWith(tailNum))) ||
+                 (bBcDigits && (bBcDigits === tailNum || bBcDigits.endsWith(tailNum)));
+        });
+      }
+      return match || null;
     }
 
     function openBillSettlement(rawInput) {
       if (!rawInput || !activeTerritory) return;
-      const statusEl = document.getElementById('barcode-scanner-status');
 
+      switchTab('credit');
+
+      const statusEl = document.getElementById('barcode-scanner-status');
       const parsed = parseScannedInput(rawInput);
       const lookupId = (parsed?.id || String(rawInput).trim()).toUpperCase();
       const scanTerr = parsed?.territory || null;
 
       let bill = findMatchingBillByCode(lookupId);
 
+      // Check rendered PDF pages if not yet in db.bills
       if (!bill && renderedPages.length) {
         const cleanId = lookupId.replace(/[^A-Z0-9]/gi, "").toUpperCase();
-        const tailNum = cleanId.replace(/^(AN|MH)/i, "");
+        const tailNum = cleanId.replace(/^(AN|MH)/i, "").replace(/^0+/, "");
         const matchingPage = renderedPages.find(p => {
           if (!p.hasBarcode) return false;
           const pBc = String(p.barcodePayload || "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
           const pId = String(p.billId || "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
-          return pBc === cleanId || pId === cleanId || (tailNum && (pBc.endsWith(tailNum) || pId.endsWith(tailNum)));
+          const pDigits = pId.replace(/[^0-9]/g, "").replace(/^0+/, "");
+          return pBc === cleanId || pId === cleanId || (tailNum && pDigits && (pDigits === tailNum || pDigits.endsWith(tailNum)));
         });
         if (matchingPage) {
           upsertPageBillIntoDb(matchingPage, matchingPage.detectedRoute);
@@ -2086,7 +2097,9 @@
 
       statusEl.innerText = `✓ Full Bill Loaded: ${bill.id} (Barcode: ${bcCode} · ${bill.route})`;
 
-      document.getElementById('active-bill-card').classList.remove('hidden');
+      const cardEl = document.getElementById('active-bill-card');
+      cardEl.classList.remove('hidden');
+
       document.getElementById('ab-code').innerText = `Bill No: ${bill.id} · Barcode: ${bcCode} · ${bill.territory}`;
       document.getElementById('ab-shop-route').innerHTML =
         `<span class="route-dot" style="background-color:${getRouteColorHex(bill.route)};margin-right:6px;"></span>Shop: ${bill.shopName} · Route: ${bill.route}`;
@@ -2117,6 +2130,10 @@
       document.getElementById('ab-return-amt').value = bill.returnAmt || "";
       document.getElementById('ab-carrier').value = bill.carrier || "";
       document.getElementById('ab-partial-input').value = bill.paid > 0 && bill.paid < bill.amount ? String(bill.paid) : "";
+
+      setTimeout(() => {
+        cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 60);
     }
 
     function saveScannedBillCoreDetails() {
