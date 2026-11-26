@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Golden Distributors ERP | Freelan Enterprises</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <style>
@@ -54,13 +54,13 @@
       height: auto;
     }
 
-    .qr-top-right {
+    .barcode-top-right {
       position: absolute;
-      top: 6px;
-      right: 24px;
+      top: 4px;
+      right: 26px;
       background: #ffffff;
       border: 1.5px solid #000000;
-      padding: 2px;
+      padding: 3px 6px;
       z-index: 30;
       width: auto !important;
       height: auto !important;
@@ -68,8 +68,9 @@
       text-align: center;
     }
 
-    .qr-top-right img,
-    .qr-top-right canvas {
+    .barcode-top-right img,
+    .barcode-top-right canvas,
+    .barcode-top-right svg {
       display: block;
       margin: 0 auto;
     }
@@ -116,9 +117,10 @@
         break-after: auto;
       }
 
-      .qr-top-right {
-        top: 4mm;
-        right: 14mm;
+      .barcode-top-right {
+        top: 2mm;
+        right: 16mm;
+        padding: 1.5mm 3mm;
         width: auto !important;
         height: auto !important;
         max-width: none !important;
@@ -200,7 +202,7 @@
 
     <div class="hidden md:flex items-center gap-1 bg-[#0c2213] p-1 rounded-xl">
       <button onclick="switchTab('dashboard')" id="top-nav-dashboard" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#e8b339] text-[#13311c]">Dashboard</button>
-      <button onclick="switchTab('bills')" id="top-nav-bills" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-100 hover:bg-[#1e462a]">SFA + QR</button>
+      <button onclick="switchTab('bills')" id="top-nav-bills" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-100 hover:bg-[#1e462a]">SFA + Barcode</button>
       <button onclick="switchTab('credit')" id="top-nav-credit" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-100 hover:bg-[#1e462a]">Credit</button>
       <button onclick="switchTab('shops')" id="top-nav-shops" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-100 hover:bg-[#1e462a]">Routes</button>
       <button onclick="switchTab('profit')" id="top-nav-profit" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-100 hover:bg-[#1e462a]">Cheques/Profit</button>
@@ -223,10 +225,10 @@
         </div>
         <div class="flex gap-2">
           <button onclick="switchTab('bills')" class="bg-[#13311c] text-white font-bold text-xs px-3 py-2 rounded-lg shadow">
-            🧾 SFA + QR
+            🧾 SFA + Barcode
           </button>
           <button onclick="switchTab('credit')" class="brand-gold text-[#13311c] font-bold text-xs px-3 py-2 rounded-lg shadow">
-            📷 QR Scan / Credit
+            📷 Barcode Scan / Credit
           </button>
         </div>
       </div>
@@ -266,12 +268,12 @@
       </div>
     </section>
 
-    <!-- TAB 2: SFA PDF + TOP-RIGHT QR PRINT -->
+    <!-- TAB 2: SFA PDF + TOP-RIGHT BARCODE PRINT -->
     <section id="tab-bills" class="hidden space-y-4">
       <div class="flex items-center justify-between">
         <div>
-          <h2 id="sfa-heading" class="text-xl font-extrabold text-[#13311c]">SFA Invoice + Page-1 QR</h2>
-          <p id="sfa-subheading" class="text-xs text-stone-500">QR appears on Page 1 of each bill only (no duplicate QR on page 2, 3, 4)</p>
+          <h2 id="sfa-heading" class="text-xl font-extrabold text-[#13311c]">SFA Invoice + Page-1 Barcode</h2>
+          <p id="sfa-subheading" class="text-xs text-stone-500">Code 128 Barcode appears on Page 1 of each bill only (no duplicate on continuation pages)</p>
         </div>
         <button onclick="switchTab('credit')" class="brand-gold text-[#13311c] font-bold text-xs px-3 py-2 rounded-lg">
           Credit Tab →
@@ -282,7 +284,7 @@
         <div class="flex items-center justify-between gap-2">
           <div>
             <h3 class="font-bold text-sm text-[#13311c]">📄 Upload Freelan SFA / Direct Sales PDF</h3>
-            <p id="pdf-upload-hint" class="text-[11px] text-stone-500">QR only on Page 1 of each bill (Page 2, 3, 4 get NO QR)</p>
+            <p id="pdf-upload-hint" class="text-[11px] text-stone-500">Code 128 Barcode on Page 1 of each bill (continuation pages get NO barcode)</p>
           </div>
           <label class="brand-green text-white text-xs font-bold px-3 py-2.5 rounded-xl cursor-pointer shrink-0">
             Upload PDF
@@ -294,11 +296,11 @@
 
         <div id="pdf-controls" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-stone-200">
           <div>
-            <label class="text-[11px] font-semibold text-stone-600">QR Size (Clear of Invoice No)</label>
-            <select id="qr-size-select" onchange="rerenderAllPageQRs()" class="w-full mt-1 p-2 rounded-lg border border-stone-300 text-xs bg-white">
-              <option value="86">Small (86px)</option>
-              <option value="100" selected>Clear Top-Right (100px)</option>
-              <option value="116">Medium (116px)</option>
+            <label class="text-[11px] font-semibold text-stone-600">Barcode Size (Dot-Matrix Friendly)</label>
+            <select id="barcode-size-select" onchange="rerenderAllPageBarcodes()" class="w-full mt-1 p-2 rounded-lg border border-stone-300 text-xs bg-white">
+              <option value="compact">Compact (36px height)</option>
+              <option value="standard" selected>Standard Dot-Matrix (44px height)</option>
+              <option value="bold">Bold Tall (52px height)</option>
             </select>
           </div>
           <div>
@@ -319,12 +321,12 @@
       <div id="sfa-pages-container" class="space-y-4"></div>
     </section>
 
-    <!-- TAB 3: CREDIT -->
+    <!-- TAB 3: CREDIT & BARCODE SCANNER -->
     <section id="tab-credit" class="hidden space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 id="credit-heading" class="text-xl font-extrabold text-[#13311c]">Credit Control & QR Scanner</h2>
-          <p id="credit-subheading" class="text-xs text-stone-500">Only active territory bills & QR codes can be scanned or settled here</p>
+          <h2 id="credit-heading" class="text-xl font-extrabold text-[#13311c]">Credit Control & Barcode Scanner</h2>
+          <p id="credit-subheading" class="text-xs text-stone-500">Scan printed Code 128 barcodes or select/type bill IDs in active territory</p>
         </div>
       </div>
 
@@ -370,27 +372,27 @@
 
       <div class="card-surface rounded-2xl p-4 space-y-3 border-2 border-[#13311c]/20">
         <div class="flex flex-wrap items-center justify-between gap-2">
-          <h3 class="font-extrabold text-sm text-[#13311c]">📷 QR Bill Scanner (Bills, Cancels & Returns)</h3>
+          <h3 class="font-extrabold text-sm text-[#13311c]">📶 Barcode / QR Bill Scanner (Bills, Cancels & Returns)</h3>
           <div class="flex gap-2">
             <button onclick="startCameraScan()" class="brand-green text-white text-xs font-bold px-3 py-1.5 rounded-lg">Start Camera</button>
             <button onclick="stopCameraScan()" class="bg-stone-200 text-stone-800 text-xs font-bold px-3 py-1.5 rounded-lg">Stop</button>
             <label class="brand-gold text-[#13311c] text-xs font-bold px-3 py-1.5 rounded-lg cursor-pointer">
               Scan Photo
-              <input type="file" accept="image/*" capture="environment" onchange="scanQrImageFile(event)" class="hidden" />
+              <input type="file" accept="image/*" capture="environment" onchange="scanBarcodeImageFile(event)" class="hidden" />
             </label>
           </div>
         </div>
 
-        <div id="qr-scanner-status" class="text-xs text-stone-600">Tap "Start Camera" to scan QR, or select/type a bill from the active territory.</div>
-        <div id="qr-reader" class="w-full max-w-sm mx-auto rounded-xl overflow-hidden bg-black"></div>
+        <div id="barcode-scanner-status" class="text-xs text-stone-600">Tap "Start Camera" or "Scan Photo" to read printed barcode, or select/type a bill ID below.</div>
+        <div id="barcode-reader" class="w-full max-w-sm mx-auto rounded-xl overflow-hidden bg-black"></div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
           <select id="quick-bill-select" onchange="openBillSettlement(this.value)" class="p-2.5 rounded-xl border border-stone-300 text-xs bg-white">
             <option value="">-- Select Bill in Active Territory --</option>
           </select>
           <div class="flex gap-2">
-            <input id="manual-qr-code" type="text" placeholder="Enter QR / Bill ID" class="flex-1 p-2.5 rounded-xl border border-stone-300 text-xs bg-white" />
-            <button onclick="openBillSettlement(document.getElementById('manual-qr-code').value.trim())" class="bg-[#13311c] text-white text-xs font-bold px-3 rounded-xl">Load</button>
+            <input id="manual-barcode-code" type="text" placeholder="Enter Barcode / Bill ID (e.g. AN-1220)" class="flex-1 p-2.5 rounded-xl border border-stone-300 text-xs bg-white" />
+            <button onclick="openBillSettlement(document.getElementById('manual-barcode-code').value.trim())" class="bg-[#13311c] text-white text-xs font-bold px-3 rounded-xl">Load</button>
           </div>
         </div>
 
@@ -686,7 +688,7 @@
       <span class="text-lg">📊</span><span>Dashboard</span>
     </button>
     <button onclick="switchTab('bills')" id="nav-bills" class="text-stone-500 flex flex-col items-center text-[11px]">
-      <span class="text-lg">🧾</span><span>SFA + QR</span>
+      <span class="text-lg">🧾</span><span>SFA + Barcode</span>
     </button>
     <button onclick="switchTab('credit')" id="nav-credit" class="text-stone-500 flex flex-col items-center text-[11px]">
       <span class="text-lg">💳</span><span>Credit</span>
@@ -746,27 +748,67 @@
       ]
     };
 
-    function renderCleanQrIntoBox(boxEl, payloadText, qrSize) {
-      if (!boxEl) return;
+    function getBarcodePreset() {
+      const mode = document.getElementById('barcode-size-select')?.value || 'standard';
+      if (mode === 'compact') return { width: 1.5, height: 34, fontSize: 10 };
+      if (mode === 'bold') return { width: 2.0, height: 50, fontSize: 12 };
+      return { width: 1.8, height: 42, fontSize: 11 };
+    }
+
+    function buildBarcodeValue(terr, billId) {
+      const prefix = terr === "Mihintale" ? "MH" : "AN";
+      const raw = String(billId || "BILL").replace(/^(AN|MH)[_\-]/i, "").trim();
+      const parts = raw.split(/[_\-]/);
+      const tail = (parts[parts.length - 1] || raw || "1").replace(/[^A-Z0-9]/gi, "").toUpperCase().slice(0, 10);
+      return `${prefix}-${tail || "1"}`;
+    }
+
+    function renderCleanBarcodeIntoBox(boxEl, barcodeText, preset = getBarcodePreset()) {
+      if (!boxEl || !window.JsBarcode) return;
       boxEl.innerHTML = "";
-      const tempDiv = document.createElement("div");
-      new QRCode(tempDiv, {
-        text: payloadText,
-        width: qrSize,
-        height: qrSize,
-        correctLevel: QRCode.CorrectLevel.L
+
+      const cleanCode = String(barcodeText || "AN-1").replace(/[^A-Z0-9_\-]/gi, "").toUpperCase().slice(0, 16) || "AN-1";
+      const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+
+      JsBarcode(svgEl, cleanCode, {
+        format: "CODE128",
+        width: preset.width,
+        height: preset.height,
+        displayValue: true,
+        fontSize: preset.fontSize,
+        textMargin: 1,
+        margin: 4,
+        background: "#ffffff",
+        lineColor: "#000000"
       });
 
-      const canvas = tempDiv.querySelector("canvas");
-      const srcImg = tempDiv.querySelector("img");
-      const dataUrl = canvas ? canvas.toDataURL("image/png") : (srcImg ? srcImg.src : "");
+      const serializer = new XMLSerializer();
+      const svgString = serializer.serializeToString(svgEl);
+      const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(svgBlob);
 
-      const finalImg = document.createElement("img");
-      finalImg.src = dataUrl;
-      finalImg.style.width = `${qrSize}px`;
-      finalImg.style.height = `${qrSize}px`;
-      finalImg.style.display = "block";
-      boxEl.appendChild(finalImg);
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width || 190;
+        canvas.height = img.height || 62;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+
+        const finalImg = document.createElement("img");
+        finalImg.src = canvas.toDataURL("image/png");
+        finalImg.alt = `Barcode ${cleanCode}`;
+        finalImg.style.display = "block";
+        finalImg.style.maxWidth = "185px";
+        finalImg.style.height = "auto";
+
+        boxEl.innerHTML = "";
+        boxEl.appendChild(finalImg);
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
     }
 
     function getCancelBadgeHtml(cancelType) {
@@ -794,16 +836,7 @@
       return "";
     }
 
-    function buildCompactQrText(terr, billId, amount, cancelType, returnType) {
-      const tCode = terr === "Mihintale" ? "MH" : "AN";
-      const cCode = cancelType === "FULL_CANCEL" ? "F" : (cancelType === "PARTIAL_CANCEL" ? "P" : "0");
-      const rCode = returnType === "EXPIRE" ? "E" : (returnType === "DAMAGE" ? "D" : (returnType === "PRODUCTION_FAULT" ? "PF" : "0"));
-      const cleanId = String(billId || "BILL").replace(/\|/g, "").slice(0, 22);
-      const amtNum = Math.round(Number(amount || 0));
-      return `${tCode}|${cleanId}|${amtNum}|${cCode}|${rCode}`;
-    }
-
-    function parseQrInput(rawInput) {
+    function parseScannedInput(rawInput) {
       const str = String(rawInput || "").trim();
       if (!str) return null;
 
@@ -818,25 +851,9 @@
         return { id, territory, amount, cancelType: cn, returnType: rt };
       }
 
-      if (str.startsWith("{")) {
-        try {
-          const j = JSON.parse(str);
-          const territory = j.t === "MH" ? "Mihintale" : (j.t === "AN" ? "Anuradhapura" : null);
-          return {
-            id: String(j.id || "").trim(),
-            territory,
-            shopName: j.s || "",
-            custCode: j.c || "",
-            date: j.d || "",
-            amount: Number(j.a || 0),
-            cancelType: j.cn || "NONE",
-            returnType: j.rt || "NONE",
-            returnAmt: Number(j.ra || 0)
-          };
-        } catch (e) {}
-      }
-
-      return { id: str, territory: null };
+      const upper = str.toUpperCase();
+      const territory = upper.startsWith("MH-") ? "Mihintale" : (upper.startsWith("AN-") ? "Anuradhapura" : null);
+      return { id: upper, territory };
     }
 
     function getRouteColorHex(routeLabel) {
@@ -885,12 +902,12 @@
       }
     };
 
-    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v12')) || defaultData;
+    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v13')) || defaultData;
     if (!db.scannedTodayByTerr) db.scannedTodayByTerr = { Anuradhapura: [], Mihintale: [] };
 
     let activeTerritory = sessionStorage.getItem('gd_active_territory') || null;
     let renderedPages = [];
-    let html5QrScanner = null;
+    let html5BarcodeScanner = null;
     let currentScannedBillId = null;
 
     function getCollectedKey() {
@@ -1007,12 +1024,12 @@
       document.getElementById('dash-subheading').innerText = `Strict lock: ${activeTerritory} bills only`;
       document.getElementById('dash-credit-label').innerText = `${activeTerritory} Outstanding Credit`;
 
-      document.getElementById('sfa-heading').innerText = `${activeTerritory} SFA + Page-1 QR`;
-      document.getElementById('sfa-subheading').innerText = `QR on Page 1 of each bill · ${otherTerr} bills blocked`;
-      document.getElementById('pdf-upload-hint').innerText = `QR on Page 1 of each bill (continuation pages of same bill get NO QR)`;
+      document.getElementById('sfa-heading').innerText = `${activeTerritory} SFA + Page-1 Barcode`;
+      document.getElementById('sfa-subheading').innerText = `Code 128 Barcode on Page 1 · ${otherTerr} bills blocked`;
+      document.getElementById('pdf-upload-hint').innerText = `Code 128 Barcode on Page 1 of each bill (continuation pages get NO barcode)`;
 
-      document.getElementById('credit-heading').innerText = `${activeTerritory} Credit, Cancel & Return QR`;
-      document.getElementById('credit-subheading').innerText = `${staff[0]} | ${staff[1]} · Editable payments & strict territory lock`;
+      document.getElementById('credit-heading').innerText = `${activeTerritory} Credit & Barcode Scanner`;
+      document.getElementById('credit-subheading').innerText = `${staff[0]} | ${staff[1]} · Barcode/QR scan & credit settlement`;
       document.getElementById('add-cr-heading').innerText = `+ Add ${activeTerritory} Credit / Return / Cancel Bill`;
 
       document.getElementById('shops-heading').innerText = `${activeTerritory} Routes & Shops`;
@@ -1024,7 +1041,7 @@
     }
 
     function saveDB() {
-      localStorage.setItem('gd_strict_agency_v12', JSON.stringify(db));
+      localStorage.setItem('gd_strict_agency_v13', JSON.stringify(db));
       rebuildTerritoryDropdowns();
       refreshAll();
     }
@@ -1399,11 +1416,11 @@
             .filter(n => n >= 100 && n <= 10000000);
           const shopMatch = pageText.match(/Invoiced\s*To\s*:\s*([A-Za-z0-9\s&.\-]+)/i);
 
-          let hasQr = false;
-          let qrPayload = "";
+          let hasBarcode = false;
+          let barcodePayload = "";
 
           if (!isContinuation) {
-            hasQr = true;
+            hasBarcode = true;
             currentBillTerr = detectedTerr || activeTerritory;
             const prefix = currentBillTerr === "Mihintale" ? "MH" : "AN";
             const invTag = extractedInv ? extractedInv.slice(0, 20) : `INV${pageNum}`;
@@ -1417,15 +1434,9 @@
             currentBillCancel = detectCancelFromPdfText(pageText);
             currentBillReturn = detectReturnFromPdfText(pageText);
 
-            qrPayload = buildCompactQrText(
-              currentBillTerr,
-              currentBillId,
-              currentBillAmount,
-              currentBillCancel,
-              currentBillReturn
-            );
+            barcodePayload = buildBarcodeValue(currentBillTerr, currentBillId);
           } else {
-            hasQr = false;
+            hasBarcode = false;
             if (nums.length && currentBillAmount === 0) {
               currentBillAmount = nums[nums.length - 1];
             }
@@ -1442,10 +1453,10 @@
 
           tempPages.push({
             pageNum,
-            hasQr,
+            hasBarcode,
             imgSrc: canvas.toDataURL('image/png'),
             billId: currentBillId || `${activeTerritory === "Mihintale" ? "MH" : "AN"}-BILL-1`,
-            qrPayload,
+            barcodePayload,
             detectedTerr: currentBillTerr,
             detectedAmount: currentBillAmount,
             detectedShop: currentBillShop || `${activeTerritory} Shop`,
@@ -1457,8 +1468,8 @@
         }
 
         renderedPages = tempPages;
-        const qrPageCount = renderedPages.filter(p => p.hasQr).length;
-        prog.innerText = `✓ Loaded ${renderedPages.length} page(s) for ${activeTerritory} · QR placed on ${qrPageCount} bill first page(s).`;
+        const bcPageCount = renderedPages.filter(p => p.hasBarcode).length;
+        prog.innerText = `✓ Loaded ${renderedPages.length} page(s) for ${activeTerritory} · Code 128 Barcode placed on ${bcPageCount} bill first page(s).`;
         document.getElementById('pdf-controls').classList.remove('hidden');
         syncRouteColorDots();
         renderSfaCards();
@@ -1471,13 +1482,8 @@
       inputEl.value = "";
     }
 
-    function getQrPx() {
-      return Number(document.getElementById('qr-size-select')?.value || 100);
-    }
-
     function renderSfaCards() {
       const container = document.getElementById('sfa-pages-container');
-      const qrSize = getQrPx();
 
       container.innerHTML = renderedPages.map((p, idx) => `
         <div class="card-surface rounded-2xl p-3 space-y-3">
@@ -1488,19 +1494,19 @@
                 <span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-emerald-100 text-emerald-800">
                   ${p.detectedTerr}
                 </span>
-                ${p.hasQr
-                  ? `<span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-amber-100 text-amber-900 border border-amber-300">✓ PAGE-1 QR</span>`
-                  : `<span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-stone-200 text-stone-700">NO QR (Continuation Page)</span>`
+                ${p.hasBarcode
+                  ? `<span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-amber-100 text-amber-900 border border-amber-300">✓ PAGE-1 BARCODE</span>`
+                  : `<span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-stone-200 text-stone-700">NO BARCODE (Continuation Page)</span>`
                 }
                 ${getCancelBadgeHtml(p.cancelType)}
                 ${getReturnBadgeHtml(p.returnType, 0)}
               </div>
               <div class="text-[11px] text-stone-500 mt-0.5">
-                Shop: ${p.detectedShop} · Code: ${p.detectedCustCode}${p.hasQr ? ` · QR: ${p.qrPayload}` : ` · Same bill continuation (QR skipped)`}
+                Shop: ${p.detectedShop} · Code: ${p.detectedCustCode}${p.hasBarcode ? ` · Barcode: ${p.barcodePayload}` : ` · Same bill continuation (Barcode skipped)`}
               </div>
             </div>
             <div class="flex flex-wrap items-center gap-1.5">
-              ${p.hasQr ? `
+              ${p.hasBarcode ? `
                 <input type="text" id="pdf-shop-${idx}" value="${p.detectedShop}" placeholder="Shop Name" class="w-28 p-1.5 rounded-lg border border-stone-300 text-xs" />
                 <input type="text" id="pdf-cust-${idx}" value="${p.detectedCustCode}" placeholder="Cust Code" class="w-24 p-1.5 rounded-lg border border-stone-300 text-xs" />
                 <input type="number" id="pdf-amt-${idx}" value="${p.detectedAmount}" placeholder="Rs." class="w-24 p-1.5 rounded-lg border border-stone-300 text-xs" />
@@ -1516,31 +1522,31 @@
 
           <div id="sheet-card-${idx}" class="invoice-sheet border border-stone-300 rounded-lg">
             <img src="${p.imgSrc}" alt="SFA Invoice Page ${p.pageNum}" />
-            ${p.hasQr ? `
-              <div class="qr-top-right">
-                <div id="qr-box-${idx}"></div>
+            ${p.hasBarcode ? `
+              <div class="barcode-top-right">
+                <div id="barcode-box-${idx}"></div>
               </div>
             ` : ""}
           </div>
         </div>
       `).join('');
 
-      rerenderAllPageQRs();
+      rerenderAllPageBarcodes();
     }
 
-    function rerenderAllPageQRs() {
-      const qrSize = getQrPx();
+    function rerenderAllPageBarcodes() {
+      const preset = getBarcodePreset();
       renderedPages.forEach((p, idx) => {
-        if (!p.hasQr) return;
-        const box = document.getElementById(`qr-box-${idx}`);
+        if (!p.hasBarcode) return;
+        const box = document.getElementById(`barcode-box-${idx}`);
         if (!box) return;
-        renderCleanQrIntoBox(box, p.qrPayload, qrSize);
+        renderCleanBarcodeIntoBox(box, p.barcodePayload, preset);
       });
     }
 
     function saveSfaPageToCredit(idx) {
       const p = renderedPages[idx];
-      if (!p || !p.hasQr) return;
+      if (!p || !p.hasBarcode) return;
       if (p.detectedTerr !== activeTerritory) {
         return alert(`Blocked: This bill belongs to ${p.detectedTerr}. Switch to ${p.detectedTerr} Agency.`);
       }
@@ -1553,7 +1559,11 @@
 
       if (amount <= 0) return alert("Enter bill amount (Rs.) to save.");
 
-      const existing = db.bills.find(b => b.id.toLowerCase() === p.billId.toLowerCase());
+      const existing = db.bills.find(b =>
+        b.id.toLowerCase() === p.billId.toLowerCase() ||
+        buildBarcodeValue(b.territory, b.id).toLowerCase() === p.barcodePayload.toLowerCase()
+      );
+
       if (existing) {
         if (existing.territory !== activeTerritory) {
           return alert(`Blocked: ${p.billId} belongs to ${existing.territory}.`);
@@ -1562,10 +1572,12 @@
         existing.custCode = custCode || existing.custCode;
         existing.route = route;
         existing.amount = amount;
+        existing.barcode = p.barcodePayload;
         existing.lastAction = "Updated from SFA PDF";
       } else {
         db.bills.unshift({
           id: p.billId,
+          barcode: p.barcodePayload,
           territory: activeTerritory,
           shopName,
           custCode,
@@ -1582,7 +1594,7 @@
         });
       }
       saveDB();
-      alert(`Saved ${p.billId} (${shopName} - ${fmt(amount)}) under ${activeTerritory}!`);
+      alert(`Saved ${p.billId} (Barcode: ${p.barcodePayload} · ${shopName} - ${fmt(amount)}) under ${activeTerritory}!`);
     }
 
     function printSinglePage(idx) {
@@ -1592,18 +1604,20 @@
 
       stage.innerHTML = "";
       const clone = sheet.cloneNode(true);
-      const qrSize = getQrPx();
-      const cloneQrBox = clone.querySelector(`#qr-box-${idx}`);
-      if (cloneQrBox && renderedPages[idx]?.hasQr) {
-        renderCleanQrIntoBox(cloneQrBox, renderedPages[idx].qrPayload, qrSize);
+      const preset = getBarcodePreset();
+      const cloneBcBox = clone.querySelector(`#barcode-box-${idx}`);
+      if (cloneBcBox && renderedPages[idx]?.hasBarcode) {
+        renderCleanBarcodeIntoBox(cloneBcBox, renderedPages[idx].barcodePayload, preset);
       }
       stage.appendChild(clone);
       stage.classList.remove('hidden');
-      window.print();
       setTimeout(() => {
-        stage.classList.add('hidden');
-        stage.innerHTML = "";
-      }, 400);
+        window.print();
+        setTimeout(() => {
+          stage.classList.add('hidden');
+          stage.innerHTML = "";
+        }, 400);
+      }, 150);
     }
 
     function printAllRenderedPages() {
@@ -1611,24 +1625,26 @@
       if (!renderedPages.length || !stage) return;
 
       stage.innerHTML = "";
-      const qrSize = getQrPx();
+      const preset = getBarcodePreset();
       renderedPages.forEach((p, idx) => {
         const orig = document.getElementById(`sheet-card-${idx}`);
         if (!orig) return;
         const clone = orig.cloneNode(true);
-        const cloneQrBox = clone.querySelector(`#qr-box-${idx}`);
-        if (cloneQrBox && p.hasQr) {
-          renderCleanQrIntoBox(cloneQrBox, p.qrPayload, qrSize);
+        const cloneBcBox = clone.querySelector(`#barcode-box-${idx}`);
+        if (cloneBcBox && p.hasBarcode) {
+          renderCleanBarcodeIntoBox(cloneBcBox, p.barcodePayload, preset);
         }
         stage.appendChild(clone);
       });
 
       stage.classList.remove('hidden');
-      window.print();
       setTimeout(() => {
-        stage.classList.add('hidden');
-        stage.innerHTML = "";
-      }, 500);
+        window.print();
+        setTimeout(() => {
+          stage.classList.add('hidden');
+          stage.innerHTML = "";
+        }, 500);
+      }, 200);
     }
 
     function recordScannedBillToSheet(billId) {
@@ -1637,7 +1653,7 @@
       if (!list.includes(billId)) {
         list.push(billId);
         db.scannedTodayByTerr[activeTerritory] = list;
-        localStorage.setItem('gd_strict_agency_v12', JSON.stringify(db));
+        localStorage.setItem('gd_strict_agency_v13', JSON.stringify(db));
         updateScannedSheetBanner();
       }
     }
@@ -1680,7 +1696,7 @@
           <tr>
             <td>${i + 1}</td>
             <td>${b.date || todayStr}</td>
-            <td><strong>${b.shopName}</strong>${cancelTag}${retTag}<br/><small>${b.id}</small></td>
+            <td><strong>${b.shopName}</strong>${cancelTag}${retTag}<br/><small>${b.id} (${b.barcode || buildBarcodeValue(activeTerritory, b.id)})</small></td>
             <td>${b.custCode || "-"}</td>
             <td style="text-align:right;"><strong>${fmt(bal)}</strong></td>
           </tr>
@@ -1708,7 +1724,7 @@
               <tr>
                 <th>#</th>
                 <th>Bill Date</th>
-                <th>Shop Name / Bill No</th>
+                <th>Shop Name / Bill & Barcode</th>
                 <th>Outlet ID / Code</th>
                 <th style="text-align:right;">Outstanding Balance</th>
               </tr>
@@ -1740,20 +1756,33 @@
     }
 
     async function startCameraScan() {
-      const statusEl = document.getElementById('qr-scanner-status');
+      const statusEl = document.getElementById('barcode-scanner-status');
       if (!window.Html5Qrcode) {
-        statusEl.innerText = "Scanner library unavailable. Use 'Scan Photo' or select bill below.";
+        statusEl.innerText = "Scanner library unavailable. Use 'Scan Photo' or enter Bill ID below.";
         return;
       }
 
       try {
         await stopCameraScan();
-        html5QrScanner = new Html5Qrcode("qr-reader");
-        statusEl.innerText = `Starting camera (${activeTerritory} session)...`;
+        html5BarcodeScanner = new Html5Qrcode("barcode-reader");
+        statusEl.innerText = `Starting barcode/QR camera (${activeTerritory} session)...`;
 
-        await html5QrScanner.start(
+        const formatsToSupport = window.Html5QrcodeSupportedFormats
+          ? [
+              Html5QrcodeSupportedFormats.CODE_128,
+              Html5QrcodeSupportedFormats.CODE_39,
+              Html5QrcodeSupportedFormats.EAN_13,
+              Html5QrcodeSupportedFormats.QR_CODE
+            ]
+          : undefined;
+
+        await html5BarcodeScanner.start(
           { facingMode: "environment" },
-          { fps: 10, qrbox: { width: 220, height: 220 } },
+          {
+            fps: 12,
+            qrbox: { width: 260, height: 110 },
+            formatsToSupport
+          },
           async (decodedText) => {
             const code = decodedText.trim();
             await stopCameraScan();
@@ -1761,49 +1790,55 @@
           },
           () => {}
         );
-        statusEl.innerText = `Camera active for ${activeTerritory}—point at QR code.`;
+        statusEl.innerText = `Camera active for ${activeTerritory}—align barcode inside the scan box.`;
       } catch (err) {
         statusEl.innerText = "Camera unavailable/blocked. Use 'Scan Photo' or select/type bill ID.";
       }
     }
 
     async function stopCameraScan() {
-      if (html5QrScanner) {
+      if (html5BarcodeScanner) {
         try {
-          if (html5QrScanner.isScanning) {
-            await html5QrScanner.stop();
+          if (html5BarcodeScanner.isScanning) {
+            await html5BarcodeScanner.stop();
           }
-          await html5QrScanner.clear();
+          await html5BarcodeScanner.clear();
         } catch (e) {}
-        html5QrScanner = null;
+        html5BarcodeScanner = null;
       }
     }
 
-    async function scanQrImageFile(event) {
+    async function scanBarcodeImageFile(event) {
       const file = event.target.files[0];
       if (!file || !window.Html5Qrcode) return;
-      const statusEl = document.getElementById('qr-scanner-status');
-      statusEl.innerText = "Reading QR from image...";
+      const statusEl = document.getElementById('barcode-scanner-status');
+      statusEl.innerText = "Reading barcode from image...";
       try {
-        const tempScanner = new Html5Qrcode("qr-reader");
+        const tempScanner = new Html5Qrcode("barcode-reader");
         const decoded = await tempScanner.scanFile(file, true);
         await tempScanner.clear();
         openBillSettlement(decoded.trim());
       } catch (err) {
-        statusEl.innerText = "Could not read QR from photo. Try closer light or enter bill ID.";
+        statusEl.innerText = "Could not read barcode from photo. Try closer light or enter Bill ID.";
       }
+      event.target.value = "";
     }
 
     function openBillSettlement(rawInput) {
       if (!rawInput || !activeTerritory) return;
-      const statusEl = document.getElementById('qr-scanner-status');
+      const statusEl = document.getElementById('barcode-scanner-status');
 
-      const parsed = parseQrInput(rawInput);
-      const lookupId = parsed?.id || String(rawInput).trim();
-      const qrTerr = parsed?.territory || null;
+      const parsed = parseScannedInput(rawInput);
+      const lookupId = (parsed?.id || String(rawInput).trim()).toUpperCase();
+      const scanTerr = parsed?.territory || null;
 
-      let bill = db.bills.find(b => b.id.toLowerCase() === lookupId.toLowerCase());
-      const actualTerr = bill ? bill.territory : qrTerr;
+      let bill = db.bills.find(b =>
+        b.id.toUpperCase() === lookupId ||
+        (b.barcode && b.barcode.toUpperCase() === lookupId) ||
+        buildBarcodeValue(b.territory, b.id).toUpperCase() === lookupId
+      );
+
+      const actualTerr = bill ? bill.territory : scanTerr;
 
       if (actualTerr && actualTerr !== activeTerritory) {
         document.getElementById('active-bill-card').classList.add('hidden');
@@ -1817,42 +1852,32 @@
         const staff = document.getElementById('sheet-staff-select')?.value || TERRITORY_STAFF[activeTerritory][0];
         bill = {
           id: lookupId,
+          barcode: buildBarcodeValue(activeTerritory, lookupId),
           territory: activeTerritory,
-          shopName: parsed?.shopName || `${activeTerritory} Shop (${lookupId})`,
-          custCode: parsed?.custCode || "-",
+          shopName: `${activeTerritory} Shop (${lookupId})`,
+          custCode: "-",
           route,
-          date: parsed?.date || daysAgo(0),
+          date: daysAgo(0),
           amount: Number(parsed?.amount || 0),
           paid: 0,
           cancelType: parsed?.cancelType || "NONE",
           returnType: parsed?.returnType || "NONE",
-          returnAmt: Number(parsed?.returnAmt || 0),
+          returnAmt: 0,
           carrier: staff,
           dispatchedMorning: true,
-          lastAction: `Loaded from QR in ${activeTerritory}`
+          lastAction: `Scanned Barcode ${lookupId} in ${activeTerritory}`
         };
         db.bills.unshift(bill);
-        saveDB();
-      } else if (parsed) {
-        if (parsed.shopName) bill.shopName = parsed.shopName;
-        if (parsed.custCode) bill.custCode = parsed.custCode;
-        if (parsed.date) bill.date = parsed.date;
-        if (Number(parsed.amount || 0) > 0) bill.amount = Number(parsed.amount);
-        if (parsed.cancelType && parsed.cancelType !== "NONE") bill.cancelType = parsed.cancelType;
-        if (parsed.returnType && parsed.returnType !== "NONE") {
-          bill.returnType = parsed.returnType;
-          if (Number(parsed.returnAmt || 0) > 0) bill.returnAmt = Number(parsed.returnAmt);
-        }
         saveDB();
       }
 
       recordScannedBillToSheet(bill.id);
       currentScannedBillId = bill.id;
       const bal = Math.max(0, bill.amount - bill.paid);
-      statusEl.innerText = `Loaded Bill: ${bill.id} (${activeTerritory})`;
+      statusEl.innerText = `Loaded Bill: ${bill.id} (Barcode: ${bill.barcode || buildBarcodeValue(bill.territory, bill.id)})`;
 
       document.getElementById('active-bill-card').classList.remove('hidden');
-      document.getElementById('ab-code').innerText = `Bill / QR: ${bill.id} · ${bill.territory}`;
+      document.getElementById('ab-code').innerText = `Bill: ${bill.id} · Barcode: ${bill.barcode || buildBarcodeValue(bill.territory, bill.id)} · ${bill.territory}`;
       document.getElementById('ab-shop-route').innerHTML = `<span class="route-dot" style="background-color:${getRouteColorHex(bill.route)};margin-right:5px;"></span>${bill.shopName} · ${bill.route}`;
       document.getElementById('ab-cust-code').innerText = `Outlet ID / Code: ${bill.custCode || "-"} · Bill Date: ${bill.date}`;
       document.getElementById('ab-flags').innerHTML =
@@ -1973,6 +1998,7 @@
       const id = `${prefix}-${1001 + db.bills.length}`;
       db.bills.unshift({
         id,
+        barcode: buildBarcodeValue(activeTerritory, id),
         territory: activeTerritory,
         shopName,
         custCode: custCode || "-",
@@ -2067,7 +2093,7 @@
         }
       });
       terrBills.forEach(b => {
-        if (`${b.shopName || ""} ${b.custCode || ""} ${b.id || ""}`.toLowerCase().includes(q)) {
+        if (`${b.shopName || ""} ${b.custCode || ""} ${b.id || ""} ${b.barcode || ""}`.toLowerCase().includes(q)) {
           candidateNames.add(b.shopName);
         }
       });
@@ -2160,7 +2186,7 @@
         if (b.territory !== activeTerritory) return false;
         if (routeFilter !== "ALL" && b.route !== routeFilter) return false;
         if (shopSearch) {
-          const hay = `${b.shopName || ""} ${b.custCode || ""} ${b.id || ""} ${b.cancelType || ""} ${b.returnType || ""}`.toLowerCase();
+          const hay = `${b.shopName || ""} ${b.custCode || ""} ${b.id || ""} ${b.barcode || ""} ${b.cancelType || ""} ${b.returnType || ""}`.toLowerCase();
           if (!hay.includes(shopSearch)) return false;
         }
         return true;
@@ -2215,6 +2241,7 @@
                   <div class="flex flex-wrap items-center gap-1.5">
                     <span class="route-dot" style="background-color:${getRouteColorHex(b.route)};"></span>
                     <span class="font-extrabold text-xs text-[#13311c]">${b.id}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-stone-100 text-stone-700 font-bold">BC: ${b.barcode || buildBarcodeValue(b.territory, b.id)}</span>
                     <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${bal > 0 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">
                       ${bal > 0 ? 'Due: ' + fmt(bal) : 'SETTLED'}
                     </span>
@@ -2435,7 +2462,7 @@
         quickSel.innerHTML = `<option value="">-- Select ${activeTerritory} Bill to Scan / Settle --</option>` +
           terrBills.map(b => {
             const bal = Math.max(0, b.amount - b.paid);
-            return `<option value="${b.id}">${b.id} · ${b.shopName} (Due: ${fmt(bal)})</option>`;
+            return `<option value="${b.id}">${b.id} (${b.barcode || buildBarcodeValue(b.territory, b.id)}) · ${b.shopName} (Due: ${fmt(bal)})</option>`;
           }).join('');
       }
 
