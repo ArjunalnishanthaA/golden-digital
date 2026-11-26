@@ -169,7 +169,7 @@
   </div>
 
   <!-- Top Header -->
-  <header class="brand-green text-white px-4 py-3 sticky top-0 z-30 shadow-md flex items-center justify-between no-print">
+  <header class="brand-green text-white px-4 py-2.5 sticky top-0 z-30 shadow-md flex flex-wrap items-center justify-between gap-2 no-print">
     <div class="flex items-center gap-3">
       <div class="brand-gold text-[#13311c] font-extrabold w-9 h-9 rounded-lg flex items-center justify-center text-lg">G</div>
       <div>
@@ -180,6 +180,16 @@
         <p id="header-agency-sub" class="text-[11px] text-emerald-200">Freelan Enterprises</p>
       </div>
     </div>
+
+    <!-- Quick Top Tabs (Always accessible on laptop/wide screens even if bottom bar is scrolled) -->
+    <div class="hidden md:flex items-center gap-1 bg-[#0c2213] p-1 rounded-xl">
+      <button onclick="switchTab('dashboard')" id="top-nav-dashboard" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#e8b339] text-[#13311c]">Dashboard</button>
+      <button onclick="switchTab('bills')" id="top-nav-bills" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-100 hover:bg-[#1e462a]">SFA + QR</button>
+      <button onclick="switchTab('credit')" id="top-nav-credit" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-100 hover:bg-[#1e462a]">Credit</button>
+      <button onclick="switchTab('shops')" id="top-nav-shops" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-100 hover:bg-[#1e462a]">Routes</button>
+      <button onclick="switchTab('profit')" id="top-nav-profit" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-100 hover:bg-[#1e462a]">Cheques/Profit</button>
+    </div>
+
     <button onclick="openAgencySwitcher()" class="bg-[#1e462a] hover:bg-[#275936] border border-emerald-600 px-3 py-1.5 rounded-full text-xs font-bold">
       ⇄ Switch Agency
     </button>
@@ -195,9 +205,14 @@
           <h2 id="dash-heading" class="text-xl font-extrabold text-[#13311c]">Agency Dashboard</h2>
           <p id="dash-subheading" class="text-xs text-stone-500">Showing active territory data only</p>
         </div>
-        <button onclick="switchTab('credit')" class="brand-gold text-[#13311c] font-bold text-xs px-3 py-2 rounded-lg shadow">
-          📷 QR Scan / Credit
-        </button>
+        <div class="flex gap-2">
+          <button onclick="switchTab('bills')" class="bg-[#13311c] text-white font-bold text-xs px-3 py-2 rounded-lg shadow">
+            🧾 SFA + QR
+          </button>
+          <button onclick="switchTab('credit')" class="brand-gold text-[#13311c] font-bold text-xs px-3 py-2 rounded-lg shadow">
+            📷 QR Scan / Credit
+          </button>
+        </div>
       </div>
 
       <div class="brand-green text-white rounded-2xl p-5 shadow-md">
@@ -215,7 +230,7 @@
         <div class="card-surface rounded-2xl p-4">
           <div class="text-[11px] font-bold text-stone-500 uppercase">Billed Today</div>
           <div id="dash-billed-today" class="text-xl font-extrabold text-[#13311c] mt-1">Rs. 0</div>
-          <div id="dash-billed-count" class="text-11px text-stone-500 mt-1">0 bills</div>
+          <div id="dash-billed-count" class="text-[11px] text-stone-500 mt-1">0 bills</div>
         </div>
       </div>
 
@@ -967,8 +982,8 @@
       document.getElementById('dash-credit-label').innerText = `${activeTerritory} Outstanding Credit`;
 
       document.getElementById('sfa-heading').innerText = `${activeTerritory} SFA + Page-1 QR`;
-      document.getElementById('sfa-subheading').innerText = `QR on Page 1 only · ${otherTerr} bills blocked`;
-      document.getElementById('pdf-upload-hint').innerText = `QR only on Page 1 of each bill (Page 2, 3, 4 get NO QR)`;
+      document.getElementById('sfa-subheading').innerText = `QR on Page 1 of each bill · ${otherTerr} bills blocked`;
+      document.getElementById('pdf-upload-hint').innerText = `QR on Page 1 of each bill (continuation pages of same bill get NO QR)`;
 
       document.getElementById('credit-heading').innerText = `${activeTerritory} Credit, Cancel & Return QR`;
       document.getElementById('credit-subheading').innerText = `${staff[0]} | ${staff[1]} · Editable payments & strict territory lock`;
@@ -995,12 +1010,33 @@
     function switchTab(tab) {
       ['dashboard', 'bills', 'credit', 'shops', 'profit'].forEach(t => {
         document.getElementById('tab-' + t).classList.add('hidden');
-        document.getElementById('nav-' + t).classList.remove('text-[#13311c]', 'font-bold');
-        document.getElementById('nav-' + t).classList.add('text-stone-500');
+
+        const botBtn = document.getElementById('nav-' + t);
+        if (botBtn) {
+          botBtn.classList.remove('text-[#13311c]', 'font-bold');
+          botBtn.classList.add('text-stone-500');
+        }
+
+        const topBtn = document.getElementById('top-nav-' + t);
+        if (topBtn) {
+          topBtn.classList.remove('bg-[#e8b339]', 'text-[#13311c]', 'font-bold');
+          topBtn.classList.add('text-emerald-100', 'font-semibold');
+        }
       });
+
       document.getElementById('tab-' + tab).classList.remove('hidden');
-      document.getElementById('nav-' + tab).classList.add('text-[#13311c]', 'font-bold');
-      document.getElementById('nav-' + tab).classList.remove('text-stone-500');
+
+      const activeBot = document.getElementById('nav-' + tab);
+      if (activeBot) {
+        activeBot.classList.add('text-[#13311c]', 'font-bold');
+        activeBot.classList.remove('text-stone-500');
+      }
+
+      const activeTop = document.getElementById('top-nav-' + tab);
+      if (activeTop) {
+        activeTop.classList.add('bg-[#e8b339]', 'text-[#13311c]', 'font-bold');
+        activeTop.classList.remove('text-emerald-100', 'font-semibold');
+      }
 
       if (tab !== 'credit') stopCameraScan();
     }
@@ -1096,7 +1132,6 @@
             const routeId = routeIdMatch[1].toUpperCase();
             const custCode = outletIdMatch[1].toUpperCase();
 
-            // Extract route name segment right after routeId
             let routeNameRaw = "";
             const afterRoute = rowText.split(routeIdMatch[0])[1] || "";
             const rNamePart = afterRoute.split(/\b(?:CG\d+|R\d{2,3}|Anurad|Mihinth|MRP|Active|In\s*Active)\b/i)[0] || "";
@@ -1113,7 +1148,6 @@
               });
             }
 
-            // Extract shop name from items between custCode and routeId (Customer route mapping layout)
             const custItem = rowItems.find(it => it.str.toUpperCase().includes(custCode));
             const routeItem = rowItems.find(it => it.str.toUpperCase().includes(routeId));
             let outletName = "";
@@ -1122,7 +1156,6 @@
               const midItems = rowItems
                 .filter(it => it.x > custItem.x + 2 && it.x < routeItem.x - 2)
                 .map(it => it.str);
-              // In Customer Route Mapping, cusnam comes first, then address
               if (midItems.length >= 2) {
                 outletName = cleanShopNameFromMapping(midItems[0]);
               } else if (midItems.length === 1) {
@@ -1156,7 +1189,6 @@
           });
         }
 
-        // Merge any newly discovered routes without wiping preset territory routes
         if (foundRoutesMap.size > 0) {
           const existingMap = new Map(TERRITORY_ROUTES[activeTerritory].map(r => [r.label.split(':')[0].trim().toUpperCase(), r]));
           foundRoutesMap.forEach((val, key) => {
@@ -1214,7 +1246,7 @@
       inputEl.value = "";
     }
 
-    /* ---------------- STRICT TERRITORY CHECK ON PDF UPLOAD ---------------- */
+    /* ---------------- STRICT TERRITORY & MULTI-BILL INVOICE DETECTION ON PDF UPLOAD ---------------- */
     function detectExplicitTerritory(text) {
       const clean = (text || "").toLowerCase();
       const hasAnur = /anuradh?apura\s*rep|anuradapura\s*rep|anuradh?apura\s*agency|anuradapura/i.test(clean);
@@ -1230,30 +1262,40 @@
     }
 
     function extractInvoiceNumber(text) {
-      const invMatch = (text || "").match(/(?:Invoice\s*(?:No\.?|#|Number)?|Bill\s*(?:No\.?|#)?|INV)\s*[:\-]?\s*([A-Z0-9_\-\/]{3,20})/i);
+      const cleanText = (text || "").replace(/\s+/g, " ");
+      const invMatch = cleanText.match(/(?:Invoice\s*(?:No\.?|#|Number)?|Bill\s*(?:No\.?|#)?|INV)\s*[:\-]?\s*([A-Z0-9_\/\-]{4,30})/i);
       if (!invMatch) return "";
       const val = invMatch[1].replace(/[^A-Z0-9_\-]/gi, '').toUpperCase();
-      if (!val || /^(NO|NUMBER|DATE|TO|FROM|PAGE)$/i.test(val)) return "";
+      if (!val || /^(NO|NUMBER|DATE|TO|FROM|PAGE|INVOICE)$/i.test(val)) return "";
       return val;
     }
 
     function isContinuationPage(text, pageNum, extractedInv, lastInvSeen) {
       const clean = (text || "").toLowerCase();
 
-      if (/\b(cont(?:inued|inuation)?|page\s*(?:2|3|4|5|6|7|8|9|\d+)\s*(?:of|\/)\s*\d+|next\s*page)\b/i.test(clean)) {
-        if (!/\bpage\s*1\s*(?:of|\/)\s*\d+\b/i.test(clean)) {
-          return true;
-        }
+      // If a brand new invoice number is found and differs from the previous bill's invoice number, it's a NEW bill
+      if (extractedInv && lastInvSeen && extractedInv !== lastInvSeen) {
+        return false;
       }
 
-      if (pageNum > 1 && lastInvSeen) {
-        if (!extractedInv || extractedInv === lastInvSeen) {
-          return true;
-        }
-      }
-
-      if (pageNum > 1 && !extractedInv) {
+      // Explicit continuation wording without a new invoice number
+      if (/\b(cont(?:inued|inuation)?|next\s*page)\b/i.test(clean) && !extractedInv) {
         return true;
+      }
+
+      // Multi-page continuation indicator like "Page 2 of 3" or "2/3" when no distinct new invoice number
+      if (/\bpage\s*(?:2|3|4|5|6|7|8|9|\d+)\s*(?:of|\/)\s*\d+\b/i.test(clean)) {
+        return true;
+      }
+
+      // Same invoice number repeated on subsequent page = continuation page
+      if (pageNum > 1 && extractedInv && lastInvSeen && extractedInv === lastInvSeen) {
+        return true;
+      }
+
+      // If page > 1 and an invoice number IS detected, treat as a new bill unless proven continuation above
+      if (pageNum > 1 && extractedInv) {
+        return false;
       }
 
       return false;
@@ -1340,7 +1382,7 @@
             hasQr = true;
             currentBillTerr = detectedTerr || activeTerritory;
             const prefix = currentBillTerr === "Mihintale" ? "MH" : "AN";
-            const invTag = extractedInv ? extractedInv.slice(0, 14) : `INV${pageNum}`;
+            const invTag = extractedInv ? extractedInv.slice(0, 20) : `INV${pageNum}`;
             currentBillId = `${prefix}-${invTag}`;
             if (extractedInv) lastInvoiceCode = extractedInv;
 
@@ -1392,7 +1434,7 @@
 
         renderedPages = tempPages;
         const qrPageCount = renderedPages.filter(p => p.hasQr).length;
-        prog.innerText = `✓ Loaded ${renderedPages.length} page(s) for ${activeTerritory} · QR placed on ${qrPageCount} first page(s) only.`;
+        prog.innerText = `✓ Loaded ${renderedPages.length} page(s) for ${activeTerritory} · QR placed on ${qrPageCount} bill first page(s).`;
         document.getElementById('pdf-controls').classList.remove('hidden');
         syncRouteColorDots();
         renderSfaCards();
