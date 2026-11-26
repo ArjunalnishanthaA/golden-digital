@@ -56,11 +56,11 @@
 
     .barcode-top-right {
       position: absolute;
-      top: 4px;
+      top: 46px;
       right: 26px;
       background: #ffffff;
-      border: 1.5px solid #000000;
-      padding: 3px 6px;
+      border: 2px solid #000000;
+      padding: 4px 8px;
       z-index: 30;
       width: auto !important;
       height: auto !important;
@@ -118,9 +118,10 @@
       }
 
       .barcode-top-right {
-        top: 2mm;
-        right: 16mm;
-        padding: 1.5mm 3mm;
+        top: 22mm;
+        right: 14mm;
+        padding: 2mm 4mm;
+        border: 1.5px solid #000000;
         width: auto !important;
         height: auto !important;
         max-width: none !important;
@@ -273,7 +274,7 @@
       <div class="flex items-center justify-between">
         <div>
           <h2 id="sfa-heading" class="text-xl font-extrabold text-[#13311c]">SFA Invoice + Page-1 Barcode</h2>
-          <p id="sfa-subheading" class="text-xs text-stone-500">Code 128 Barcode appears on Page 1 of each bill only (no duplicate on continuation pages)</p>
+          <p id="sfa-subheading" class="text-xs text-stone-500">Simple Dot-Matrix Barcode appears on Page 1 of each bill only (no duplicate on continuation pages)</p>
         </div>
         <button onclick="switchTab('credit')" class="brand-gold text-[#13311c] font-bold text-xs px-3 py-2 rounded-lg">
           Credit Tab →
@@ -284,7 +285,7 @@
         <div class="flex items-center justify-between gap-2">
           <div>
             <h3 class="font-bold text-sm text-[#13311c]">📄 Upload Freelan SFA / Direct Sales PDF</h3>
-            <p id="pdf-upload-hint" class="text-[11px] text-stone-500">Code 128 Barcode on Page 1 of each bill (continuation pages get NO barcode)</p>
+            <p id="pdf-upload-hint" class="text-[11px] text-stone-500">Simple Dot-Matrix Barcode on Page 1 of each bill (continuation pages get NO barcode)</p>
           </div>
           <label class="brand-green text-white text-xs font-bold px-3 py-2.5 rounded-xl cursor-pointer shrink-0">
             Upload PDF
@@ -296,11 +297,11 @@
 
         <div id="pdf-controls" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-stone-200">
           <div>
-            <label class="text-[11px] font-semibold text-stone-600">Barcode Size (Dot-Matrix Friendly)</label>
+            <label class="text-[11px] font-semibold text-stone-600">Barcode Size (LQ-310 Dot-Matrix)</label>
             <select id="barcode-size-select" onchange="rerenderAllPageBarcodes()" class="w-full mt-1 p-2 rounded-lg border border-stone-300 text-xs bg-white">
-              <option value="compact">Compact (36px height)</option>
-              <option value="standard" selected>Standard Dot-Matrix (44px height)</option>
-              <option value="bold">Bold Tall (52px height)</option>
+              <option value="compact">Compact (40px height)</option>
+              <option value="standard" selected>LQ-310 Clear (48px height)</option>
+              <option value="bold">Extra Bold (56px height)</option>
             </select>
           </div>
           <div>
@@ -326,7 +327,7 @@
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 id="credit-heading" class="text-xl font-extrabold text-[#13311c]">Credit Control & Barcode Scanner</h2>
-          <p id="credit-subheading" class="text-xs text-stone-500">Scan printed Code 128 barcodes or select/type bill IDs in active territory</p>
+          <p id="credit-subheading" class="text-xs text-stone-500">Scan printed barcodes or select/type bill IDs in active territory</p>
         </div>
       </div>
 
@@ -750,16 +751,17 @@
 
     function getBarcodePreset() {
       const mode = document.getElementById('barcode-size-select')?.value || 'standard';
-      if (mode === 'compact') return { width: 1.5, height: 34, fontSize: 10 };
-      if (mode === 'bold') return { width: 2.0, height: 50, fontSize: 12 };
-      return { width: 1.8, height: 42, fontSize: 11 };
+      if (mode === 'compact') return { width: 2.0, height: 40, fontSize: 11 };
+      if (mode === 'bold') return { width: 2.6, height: 56, fontSize: 13 };
+      return { width: 2.3, height: 48, fontSize: 12 };
     }
 
+    // Simple, short CODE39 value (A-Z, 0-9, -, .) -> fewer bars & thicker bars for LQ-310 dot-matrix
     function buildBarcodeValue(terr, billId) {
       const prefix = terr === "Mihintale" ? "MH" : "AN";
-      const raw = String(billId || "BILL").replace(/^(AN|MH)[_\-]/i, "").trim();
+      const raw = String(billId || "1").replace(/^(AN|MH)[_\-]/i, "").trim();
       const parts = raw.split(/[_\-]/);
-      const tail = (parts[parts.length - 1] || raw || "1").replace(/[^A-Z0-9]/gi, "").toUpperCase().slice(0, 10);
+      const tail = (parts[parts.length - 1] || raw || "1").replace(/[^A-Z0-9]/gi, "").toUpperCase().slice(0, 7);
       return `${prefix}-${tail || "1"}`;
     }
 
@@ -767,17 +769,17 @@
       if (!boxEl || !window.JsBarcode) return;
       boxEl.innerHTML = "";
 
-      const cleanCode = String(barcodeText || "AN-1").replace(/[^A-Z0-9_\-]/gi, "").toUpperCase().slice(0, 16) || "AN-1";
+      const cleanCode = String(barcodeText || "AN-1").replace(/[^A-Z0-9\-.]/gi, "").toUpperCase().slice(0, 11) || "AN-1";
       const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 
       JsBarcode(svgEl, cleanCode, {
-        format: "CODE128",
+        format: "CODE39",
         width: preset.width,
         height: preset.height,
         displayValue: true,
         fontSize: preset.fontSize,
-        textMargin: 1,
-        margin: 4,
+        textMargin: 2,
+        margin: 6,
         background: "#ffffff",
         lineColor: "#000000"
       });
@@ -790,8 +792,8 @@
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        canvas.width = img.width || 190;
-        canvas.height = img.height || 62;
+        canvas.width = img.width || 200;
+        canvas.height = img.height || 70;
         const ctx = canvas.getContext("2d");
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -801,7 +803,7 @@
         finalImg.src = canvas.toDataURL("image/png");
         finalImg.alt = `Barcode ${cleanCode}`;
         finalImg.style.display = "block";
-        finalImg.style.maxWidth = "185px";
+        finalImg.style.maxWidth = "210px";
         finalImg.style.height = "auto";
 
         boxEl.innerHTML = "";
@@ -851,7 +853,7 @@
         return { id, territory, amount, cancelType: cn, returnType: rt };
       }
 
-      const upper = str.toUpperCase();
+      const upper = str.replace(/^\*+|\*+$/g, "").trim().toUpperCase();
       const territory = upper.startsWith("MH-") ? "Mihintale" : (upper.startsWith("AN-") ? "Anuradhapura" : null);
       return { id: upper, territory };
     }
@@ -902,7 +904,7 @@
       }
     };
 
-    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v13')) || defaultData;
+    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v15')) || defaultData;
     if (!db.scannedTodayByTerr) db.scannedTodayByTerr = { Anuradhapura: [], Mihintale: [] };
 
     let activeTerritory = sessionStorage.getItem('gd_active_territory') || null;
@@ -1025,8 +1027,8 @@
       document.getElementById('dash-credit-label').innerText = `${activeTerritory} Outstanding Credit`;
 
       document.getElementById('sfa-heading').innerText = `${activeTerritory} SFA + Page-1 Barcode`;
-      document.getElementById('sfa-subheading').innerText = `Code 128 Barcode on Page 1 · ${otherTerr} bills blocked`;
-      document.getElementById('pdf-upload-hint').innerText = `Code 128 Barcode on Page 1 of each bill (continuation pages get NO barcode)`;
+      document.getElementById('sfa-subheading').innerText = `Simple Dot-Matrix Barcode on Page 1 · ${otherTerr} bills blocked`;
+      document.getElementById('pdf-upload-hint').innerText = `Simple Dot-Matrix Barcode on Page 1 of each bill (continuation pages get NO barcode)`;
 
       document.getElementById('credit-heading').innerText = `${activeTerritory} Credit & Barcode Scanner`;
       document.getElementById('credit-subheading').innerText = `${staff[0]} | ${staff[1]} · Barcode/QR scan & credit settlement`;
@@ -1041,7 +1043,7 @@
     }
 
     function saveDB() {
-      localStorage.setItem('gd_strict_agency_v13', JSON.stringify(db));
+      localStorage.setItem('gd_strict_agency_v15', JSON.stringify(db));
       rebuildTerritoryDropdowns();
       refreshAll();
     }
@@ -1469,7 +1471,7 @@
 
         renderedPages = tempPages;
         const bcPageCount = renderedPages.filter(p => p.hasBarcode).length;
-        prog.innerText = `✓ Loaded ${renderedPages.length} page(s) for ${activeTerritory} · Code 128 Barcode placed on ${bcPageCount} bill first page(s).`;
+        prog.innerText = `✓ Loaded ${renderedPages.length} page(s) for ${activeTerritory} · Simple Dot-Matrix Barcode placed on ${bcPageCount} bill first page(s).`;
         document.getElementById('pdf-controls').classList.remove('hidden');
         syncRouteColorDots();
         renderSfaCards();
@@ -1653,7 +1655,7 @@
       if (!list.includes(billId)) {
         list.push(billId);
         db.scannedTodayByTerr[activeTerritory] = list;
-        localStorage.setItem('gd_strict_agency_v13', JSON.stringify(db));
+        localStorage.setItem('gd_strict_agency_v15', JSON.stringify(db));
         updateScannedSheetBanner();
       }
     }
@@ -1769,8 +1771,8 @@
 
         const formatsToSupport = window.Html5QrcodeSupportedFormats
           ? [
-              Html5QrcodeSupportedFormats.CODE_128,
               Html5QrcodeSupportedFormats.CODE_39,
+              Html5QrcodeSupportedFormats.CODE_128,
               Html5QrcodeSupportedFormats.EAN_13,
               Html5QrcodeSupportedFormats.QR_CODE
             ]
