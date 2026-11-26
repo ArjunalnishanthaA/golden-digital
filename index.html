@@ -274,7 +274,7 @@
       <div class="flex items-center justify-between">
         <div>
           <h2 id="sfa-heading" class="text-xl font-extrabold text-[#13311c]">SFA Invoice + Page-1 Barcode</h2>
-          <p id="sfa-subheading" class="text-xs text-stone-500">Auto-saves full bill details + Bold LQ-310 Barcode on Page 1</p>
+          <p id="sfa-subheading" class="text-xs text-stone-500">Auto-detects route & auto-saves full bill details + Bold LQ-310 Barcode</p>
         </div>
         <button onclick="switchTab('credit')" class="brand-gold text-[#13311c] font-bold text-xs px-3 py-2 rounded-lg">
           Credit Tab →
@@ -285,7 +285,7 @@
         <div class="flex items-center justify-between gap-2">
           <div>
             <h3 class="font-bold text-sm text-[#13311c]">📄 Upload Freelan SFA / Direct Sales PDF</h3>
-            <p id="pdf-upload-hint" class="text-[11px] text-stone-500">Automatically syncs all bill details for instant barcode scan & bold LQ-310 print</p>
+            <p id="pdf-upload-hint" class="text-[11px] text-stone-500">Automatically detects route, saves all bill details & prints bold LQ-310 barcode on Page 1</p>
           </div>
           <label class="brand-green text-white text-xs font-bold px-3 py-2.5 rounded-xl cursor-pointer shrink-0">
             Upload PDF
@@ -299,16 +299,16 @@
           <div>
             <label class="text-[11px] font-semibold text-stone-600">Barcode Size (LQ-310 Dot-Matrix)</label>
             <select id="barcode-size-select" onchange="rerenderAllPageBarcodes()" class="w-full mt-1 p-2 rounded-lg border border-stone-300 text-xs bg-white">
-              <option value="compact">Compact (60px height)</option>
-              <option value="standard" selected>LQ-310 Extra Bold (76px height)</option>
-              <option value="bold">Jumbo Thick (90px height)</option>
+              <option value="compact">Compact (64px height)</option>
+              <option value="standard" selected>LQ-310 Extra Bold (80px height)</option>
+              <option value="bold">Jumbo Thick (94px height)</option>
             </select>
           </div>
           <div>
-            <label class="text-[11px] font-semibold text-stone-600">Route (Active Territory Only)</label>
+            <label class="text-[11px] font-semibold text-stone-600">Auto-Detected Route (Override if needed)</label>
             <div class="flex items-center gap-2 mt-1">
               <span id="pdf-route-dot" class="route-dot"></span>
-              <select id="pdf-route-select" onchange="syncRouteColorDots(); syncPdfBillsToDb();" class="w-full p-2 rounded-lg border border-stone-300 text-xs bg-white"></select>
+              <select id="pdf-route-select" onchange="syncRouteColorDots(); syncPdfBillsToDb(true);" class="w-full p-2 rounded-lg border border-stone-300 text-xs bg-white"></select>
             </div>
           </div>
           <div class="flex items-end">
@@ -754,9 +754,9 @@
 
     function getBarcodePreset() {
       const mode = document.getElementById('barcode-size-select')?.value || 'standard';
-      if (mode === 'compact') return { width: 3.4, height: 60, fontSize: 15 };
-      if (mode === 'bold') return { width: 4.8, height: 90, fontSize: 18 };
-      return { width: 4.2, height: 76, fontSize: 16 };
+      if (mode === 'compact') return { width: 3.6, height: 64, fontSize: 15 };
+      if (mode === 'bold') return { width: 5.0, height: 94, fontSize: 18 };
+      return { width: 4.4, height: 80, fontSize: 17 };
     }
 
     function buildBarcodeValue(terr, billId) {
@@ -807,7 +807,7 @@
         const data = imgData.data;
         for (let i = 0; i < data.length; i += 4) {
           const lum = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
-          const v = lum < 185 ? 0 : 255;
+          const v = lum < 190 ? 0 : 255;
           data[i] = v;
           data[i + 1] = v;
           data[i + 2] = v;
@@ -819,7 +819,7 @@
         finalImg.src = canvas.toDataURL("image/png");
         finalImg.alt = `Barcode ${cleanCode}`;
         finalImg.style.display = "block";
-        finalImg.style.maxWidth = "250px";
+        finalImg.style.maxWidth = "255px";
         finalImg.style.height = "auto";
 
         boxEl.innerHTML = "";
@@ -920,7 +920,7 @@
       }
     };
 
-    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v17')) || defaultData;
+    let db = JSON.parse(localStorage.getItem('gd_strict_agency_v18')) || defaultData;
     if (!db.scannedTodayByTerr) db.scannedTodayByTerr = { Anuradhapura: [], Mihintale: [] };
 
     let activeTerritory = sessionStorage.getItem('gd_active_territory') || null;
@@ -1043,8 +1043,8 @@
       document.getElementById('dash-credit-label').innerText = `${activeTerritory} Outstanding Credit`;
 
       document.getElementById('sfa-heading').innerText = `${activeTerritory} SFA + Page-1 Barcode`;
-      document.getElementById('sfa-subheading').innerText = `Auto-saves full bill details + Bold LQ-310 Barcode · ${otherTerr} bills blocked`;
-      document.getElementById('pdf-upload-hint').innerText = `Automatically saves all bill details for instant barcode scan & bold LQ-310 print`;
+      document.getElementById('sfa-subheading').innerText = `Auto-detects route & auto-saves full bill details · ${otherTerr} bills blocked`;
+      document.getElementById('pdf-upload-hint').innerText = `Automatically identifies route, saves all bill details & prints bold LQ-310 barcode on Page 1`;
 
       document.getElementById('credit-heading').innerText = `${activeTerritory} Credit & Barcode Scanner`;
       document.getElementById('credit-subheading').innerText = `${staff[0]} | ${staff[1]} · Scan barcode to view full bill details & settle`;
@@ -1059,7 +1059,7 @@
     }
 
     function saveDB() {
-      localStorage.setItem('gd_strict_agency_v17', JSON.stringify(db));
+      localStorage.setItem('gd_strict_agency_v18', JSON.stringify(db));
       rebuildTerritoryDropdowns();
       refreshAll();
     }
@@ -1128,6 +1128,60 @@
         .replace(/\bAnurad[a-z0-9]*\b/gi, " ")
         .replace(/\s+/g, " ")
         .trim();
+    }
+
+    // Automatically identify route from PDF text, route code, location keywords, or saved shop records
+    function identifyRouteFromPdfPage(pageText, shopName, custCode) {
+      const routes = TERRITORY_ROUTES[activeTerritory] || [];
+      const clean = String(pageText || "");
+
+      // 1. Direct route code match (e.g., RAA001..RAA006 or RAM001..RAM006)
+      const codeMatch = clean.match(/\b(RA[AM]\d{2,4}|R\d{2,4})\b/i);
+      if (codeMatch) {
+        const code = codeMatch[1].toUpperCase();
+        const exact = routes.find(r => r.label.toUpperCase().startsWith(code + ":") || r.label.toUpperCase() === code);
+        if (exact) return exact.label;
+      }
+
+      // 2. Match against already saved/imported shops by Outlet ID or Shop Name
+      const cCodeLow = (custCode || "").trim().toLowerCase();
+      const sNameLow = (shopName || "").trim().toLowerCase();
+      if (cCodeLow && cCodeLow !== "-") {
+        const byCode = db.shops.find(s => s.territory === activeTerritory && (s.custCode || "").toLowerCase() === cCodeLow);
+        if (byCode && byCode.route) return byCode.route;
+      }
+      if (sNameLow) {
+        const byName = db.shops.find(s => s.territory === activeTerritory && (s.name || "").toLowerCase() === sNameLow);
+        if (byName && byName.route) return byName.route;
+      }
+
+      // 3. Match route keywords / town names inside the PDF page text
+      const lowText = clean.toLowerCase();
+      let bestRoute = null;
+      let bestScore = 0;
+
+      for (const r of routes) {
+        const afterColon = r.label.split(":")[1] || r.label;
+        const tokens = afterColon
+          .toLowerCase()
+          .split(/[,\/\-]+/)
+          .map(t => t.trim())
+          .filter(t => t.length >= 4);
+
+        let score = 0;
+        for (const tok of tokens) {
+          if (lowText.includes(tok)) score += tok.length;
+        }
+        if (score > bestScore) {
+          bestScore = score;
+          bestRoute = r.label;
+        }
+      }
+
+      if (bestRoute && bestScore > 0) return bestRoute;
+
+      // 4. Fallback to first route of active territory
+      return routes[0]?.label || "";
     }
 
     async function handleProductivityPdfImport(event) {
@@ -1393,12 +1447,12 @@
       return "NONE";
     }
 
-    // Automatically upsert bill details into db.bills so scanning barcode always shows complete bill info
+    // Automatically upsert bill details + auto-detected route into db.bills
     function upsertPageBillIntoDb(pageObj, routeOverride = null) {
       if (!pageObj || !pageObj.hasBarcode) return;
       if (pageObj.detectedTerr !== activeTerritory) return;
 
-      const route = routeOverride || document.getElementById('pdf-route-select')?.value || TERRITORY_ROUTES[activeTerritory][0].label;
+      const route = routeOverride || pageObj.detectedRoute || TERRITORY_ROUTES[activeTerritory][0].label;
       const shopName = (document.getElementById(`pdf-shop-${pageObj._idx}`)?.value || pageObj.detectedShop || `${activeTerritory} Shop`).trim();
       const custCode = (document.getElementById(`pdf-cust-${pageObj._idx}`)?.value || pageObj.detectedCustCode || "-").trim();
       const amount = Number(document.getElementById(`pdf-amt-${pageObj._idx}`)?.value || pageObj.detectedAmount || 0);
@@ -1436,18 +1490,21 @@
           returnAmt: 0,
           carrier: pageObj.detectedStaff || TERRITORY_STAFF[activeTerritory][0],
           dispatchedMorning: true,
-          lastAction: "Auto-synced from SFA PDF"
+          lastAction: `Auto-saved (${route.split(":")[0]})`
         });
       }
     }
 
-    function syncPdfBillsToDb() {
+    function syncPdfBillsToDb(applyDropdownRouteToAll = false) {
       if (!renderedPages.length || !activeTerritory) return;
-      const selectedRoute = document.getElementById('pdf-route-select')?.value || TERRITORY_ROUTES[activeTerritory][0].label;
+      const dropdownRoute = document.getElementById('pdf-route-select')?.value;
       renderedPages.forEach((p, idx) => {
         p._idx = idx;
         if (p.hasBarcode) {
-          upsertPageBillIntoDb(p, selectedRoute);
+          if (applyDropdownRouteToAll && dropdownRoute) {
+            p.detectedRoute = dropdownRoute;
+          }
+          upsertPageBillIntoDb(p, p.detectedRoute);
         }
       });
       saveDB();
@@ -1464,7 +1521,7 @@
       prog.classList.remove('hidden');
       prog.classList.remove('text-red-700');
       prog.classList.add('text-[#13311c]');
-      prog.innerText = `Checking territory & reading ${file.name}...`;
+      prog.innerText = `Checking territory, identifying route & reading ${file.name}...`;
       container.innerHTML = "";
       renderedPages = [];
       document.getElementById('pdf-controls').classList.add('hidden');
@@ -1476,6 +1533,7 @@
         let lastInvoiceCode = "";
         let currentBillId = "";
         let currentBillTerr = activeTerritory;
+        let currentBillRoute = TERRITORY_ROUTES[activeTerritory][0].label;
         let currentBillShop = "";
         let currentBillCust = "";
         let currentBillDate = daysAgo(0);
@@ -1485,7 +1543,7 @@
         let currentBillReturn = "NONE";
 
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-          prog.innerText = `Verifying page ${pageNum} of ${pdf.numPages}...`;
+          prog.innerText = `Processing page ${pageNum} of ${pdf.numPages}...`;
           const page = await pdf.getPage(pageNum);
           const textContent = await page.getTextContent();
           const pageText = textContent.items.map(i => i.str).join(' ');
@@ -1530,6 +1588,7 @@
             currentBillStaff = extractSalesPersonFromPdf(pageText, TERRITORY_STAFF[activeTerritory][0]);
             currentBillCancel = detectCancelFromPdfText(pageText);
             currentBillReturn = detectReturnFromPdfText(pageText);
+            currentBillRoute = identifyRouteFromPdfPage(pageText, currentBillShop, currentBillCust);
 
             barcodePayload = buildBarcodeValue(currentBillTerr, currentBillId);
           } else {
@@ -1556,6 +1615,7 @@
             billId: currentBillId || `${activeTerritory === "Mihintale" ? "MH" : "AN"}-BILL-1`,
             barcodePayload,
             detectedTerr: currentBillTerr,
+            detectedRoute: currentBillRoute,
             detectedAmount: currentBillAmount,
             detectedShop: currentBillShop || `${activeTerritory} Shop`,
             detectedCustCode: currentBillCust || "-",
@@ -1567,14 +1627,22 @@
         }
 
         renderedPages = tempPages;
-        const selectedRoute = document.getElementById('pdf-route-select')?.value || TERRITORY_ROUTES[activeTerritory][0].label;
+        const firstBarcodePage = renderedPages.find(p => p.hasBarcode && p.detectedRoute);
+        if (firstBarcodePage) {
+          const pdfRouteSel = document.getElementById('pdf-route-select');
+          if (pdfRouteSel && Array.from(pdfRouteSel.options).some(o => o.value === firstBarcodePage.detectedRoute)) {
+            pdfRouteSel.value = firstBarcodePage.detectedRoute;
+          }
+        }
+
         renderedPages.forEach(p => {
-          if (p.hasBarcode) upsertPageBillIntoDb(p, selectedRoute);
+          if (p.hasBarcode) upsertPageBillIntoDb(p, p.detectedRoute);
         });
         saveDB();
 
         const bcPageCount = renderedPages.filter(p => p.hasBarcode).length;
-        prog.innerText = `✓ Loaded ${renderedPages.length} page(s) & auto-saved ${bcPageCount} bill(s) with Bold LQ-310 Barcode on Page 1.`;
+        const autoRouteText = firstBarcodePage ? firstBarcodePage.detectedRoute.split(":")[0].trim() : "";
+        prog.innerText = `✓ Auto-saved ${bcPageCount} bill(s) & identified route (${autoRouteText || activeTerritory}) across ${renderedPages.length} page(s).`;
         document.getElementById('pdf-controls').classList.remove('hidden');
         syncRouteColorDots();
         renderSfaCards();
@@ -1597,10 +1665,11 @@
               <div class="flex flex-wrap items-center gap-1.5">
                 <span class="text-xs font-extrabold text-[#13311c]">Page ${p.pageNum} · ${p.billId}</span>
                 <span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-emerald-100 text-emerald-800">
-                  ${p.detectedTerr}
+                  <span class="route-dot" style="background-color:${getRouteColorHex(p.detectedRoute)};width:8px;height:8px;margin-right:4px;"></span>
+                  ${p.detectedRoute || activeTerritory}
                 </span>
                 ${p.hasBarcode
-                  ? `<span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-amber-100 text-amber-900 border border-amber-300">✓ PAGE-1 BARCODE</span>`
+                  ? `<span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-amber-100 text-amber-900 border border-amber-300">✓ AUTO-SAVED + PAGE-1 BARCODE</span>`
                   : `<span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-stone-200 text-stone-700">NO BARCODE (Continuation Page)</span>`
                 }
                 ${getCancelBadgeHtml(p.cancelType)}
@@ -1612,9 +1681,9 @@
             </div>
             <div class="flex flex-wrap items-center gap-1.5">
               ${p.hasBarcode ? `
-                <input type="text" id="pdf-shop-${idx}" value="${p.detectedShop}" onchange="syncPdfBillsToDb()" placeholder="Shop Name" class="w-28 p-1.5 rounded-lg border border-stone-300 text-xs" />
-                <input type="text" id="pdf-cust-${idx}" value="${p.detectedCustCode}" onchange="syncPdfBillsToDb()" placeholder="Cust Code" class="w-24 p-1.5 rounded-lg border border-stone-300 text-xs" />
-                <input type="number" id="pdf-amt-${idx}" value="${p.detectedAmount}" onchange="syncPdfBillsToDb()" placeholder="Rs." class="w-24 p-1.5 rounded-lg border border-stone-300 text-xs" />
+                <input type="text" id="pdf-shop-${idx}" value="${p.detectedShop}" onchange="syncPdfBillsToDb(false)" placeholder="Shop Name" class="w-28 p-1.5 rounded-lg border border-stone-300 text-xs" />
+                <input type="text" id="pdf-cust-${idx}" value="${p.detectedCustCode}" onchange="syncPdfBillsToDb(false)" placeholder="Cust Code" class="w-24 p-1.5 rounded-lg border border-stone-300 text-xs" />
+                <input type="number" id="pdf-amt-${idx}" value="${p.detectedAmount}" onchange="syncPdfBillsToDb(false)" placeholder="Rs." class="w-24 p-1.5 rounded-lg border border-stone-300 text-xs" />
                 <button onclick="saveSfaPageToCredit(${idx})" class="bg-emerald-800 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg">
                   ✓ Sync Bill
                 </button>
@@ -1656,19 +1725,18 @@
         return alert(`Blocked: This bill belongs to ${p.detectedTerr}. Switch to ${p.detectedTerr} Agency.`);
       }
       p._idx = idx;
-      const route = document.getElementById('pdf-route-select')?.value || TERRITORY_ROUTES[activeTerritory][0].label;
-      upsertPageBillIntoDb(p, route);
+      upsertPageBillIntoDb(p, p.detectedRoute);
       saveDB();
       const amount = Number(document.getElementById(`pdf-amt-${idx}`)?.value || p.detectedAmount || 0);
       const shopName = (document.getElementById(`pdf-shop-${idx}`)?.value || p.detectedShop || "Shop").trim();
-      alert(`Synced ${p.billId} (Barcode: ${p.barcodePayload} · ${shopName} - ${fmt(amount)}) under ${activeTerritory}!`);
+      alert(`Synced ${p.billId} (Barcode: ${p.barcodePayload} · ${shopName} · ${p.detectedRoute} - ${fmt(amount)})!`);
     }
 
     function printSinglePage(idx) {
       const p = renderedPages[idx];
       if (p && p.hasBarcode) {
         p._idx = idx;
-        upsertPageBillIntoDb(p);
+        upsertPageBillIntoDb(p, p.detectedRoute);
         saveDB();
       }
       const sheet = document.getElementById(`sheet-card-${idx}`);
@@ -1694,7 +1762,7 @@
     }
 
     function printAllRenderedPages() {
-      syncPdfBillsToDb();
+      syncPdfBillsToDb(false);
       const stage = document.getElementById('print-stage');
       if (!renderedPages.length || !stage) return;
 
@@ -1727,7 +1795,7 @@
       if (!list.includes(billId)) {
         list.push(billId);
         db.scannedTodayByTerr[activeTerritory] = list;
-        localStorage.setItem('gd_strict_agency_v17', JSON.stringify(db));
+        localStorage.setItem('gd_strict_agency_v18', JSON.stringify(db));
         updateScannedSheetBanner();
       }
     }
@@ -1912,14 +1980,13 @@
         buildBarcodeValue(b.territory, b.id).toUpperCase() === lookupId
       );
 
-      // If still not found in db.bills, check if currently loaded in SFA PDF pages
       if (!bill && renderedPages.length) {
         const matchingPage = renderedPages.find(p =>
           p.hasBarcode &&
           (p.barcodePayload.toUpperCase() === lookupId || p.billId.toUpperCase() === lookupId)
         );
         if (matchingPage) {
-          upsertPageBillIntoDb(matchingPage);
+          upsertPageBillIntoDb(matchingPage, matchingPage.detectedRoute);
           saveDB();
           bill = db.bills.find(b => b.id === matchingPage.billId);
         }
@@ -1964,7 +2031,7 @@
       const shopInfo = getShopOutstandingInfo(bill.shopName, bill.custCode);
       const bcCode = bill.barcode || buildBarcodeValue(bill.territory, bill.id);
 
-      statusEl.innerText = `✓ Full Bill Loaded: ${bill.id} (Barcode: ${bcCode})`;
+      statusEl.innerText = `✓ Full Bill Loaded: ${bill.id} (Barcode: ${bcCode} · ${bill.route})`;
 
       document.getElementById('active-bill-card').classList.remove('hidden');
       document.getElementById('ab-code').innerText = `Bill No: ${bill.id} · Barcode: ${bcCode} · ${bill.territory}`;
